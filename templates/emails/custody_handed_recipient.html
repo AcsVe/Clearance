@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+{% block heading %}إشعار استلام عهدة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا <strong>{{ c.recipient_name }}</strong>،</p>
+<p style="margin:0 0 15px;">نود إعلامكم بتسليمكم العهدة التالية من قسم <strong>{{ c.dept_label }}</strong>:</p>
+<div style="background:#f8fafc;border:2px dashed #cbd5e1;padding:20px;border-radius:10px;text-align:center;margin:25px 0;">
+  <p style="margin:0 0 5px;font-size:16px;color:#64748b;font-weight:bold;">تفاصيل العهدة</p>
+  <h2 style="margin:0;color:#1e3a8a;font-size:28px;font-weight:900;">{{ c.item_name }}</h2>
+</div>
+<p style="margin:0 0 15px;font-size:16px;color:#b91c1c;"><strong>تنبيه:</strong> يرجى المحافظة عليها وإرجاعها عند الانتهاء.</p>
+<p style="text-align:center;margin:25px 0 0;"><a href="{{ link }}" style="color:#1d4ed8;font-weight:bold;">عرض الإشعار وطباعته</a></p>
+{% endblock %}

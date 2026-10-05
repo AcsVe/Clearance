@@ -16,6 +16,7 @@
     {% if has_perm('clearance.view_all') %}<a href="{{ url_for('clearance.index') }}">براءة الذمة</a>{% endif %}
     {% if has_perm('clearance.sign') %}<a href="{{ url_for('clearance.sign_list') }}">بوابة القسم</a>{% endif %}
     {% if has_perm('finance.settle') %}<a href="{{ url_for('clearance.finance') }}">المحاسبة</a>{% endif %}
+    {% if has_perm('custody.manage') or has_perm('custody.view_all') or has_perm('custody.manage_all') %}<a href="{{ url_for('custody.index') }}">العهد</a>{% endif %}
     {% if has_perm('users.manage') %}<a href="{{ url_for('admin.users') }}">المستخدمون</a><a href="{{ url_for('admin.roles') }}">الأدوار</a>{% endif %}
     {% if has_perm('departments.manage') %}<a href="{{ url_for('admin.departments') }}">الأقسام</a>{% endif %}
     {% if has_perm('email_log.view') %}<a href="{{ url_for('admin.email_log') }}">سجل البريد</a>{% endif %}

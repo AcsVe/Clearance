@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+{% block heading %}إشعار استرجاع عهدة ✅{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا،</p>
+<p style="margin:0 0 15px;">نود إعلامكم بأنه تم <strong style="color:#16a34a;">استرجاع</strong> العهدة التالية:</p>
+<div style="background:#f0fdf4;border:1px solid #bbf7d0;padding:15px;border-radius:8px;margin:20px 0;font-size:18px;">
+  <p style="margin:0 0 10px;"><strong>العهدة:</strong> {{ c.item_name }}</p>
+  <p style="margin:0 0 10px;"><strong>العهدة على الموظف:</strong> {{ c.recipient_name }}</p>
+  <p style="margin:0;"><strong>مستلم الإرجاع بالقسم:</strong> {{ c.returned_to_name }}</p>
+</div>
+<p style="text-align:center;margin:25px 0 0;"><a href="{{ link }}" style="color:#1d4ed8;font-weight:bold;">عرض إشعار الاسترجاع وطباعته</a></p>
+{% endblock %}

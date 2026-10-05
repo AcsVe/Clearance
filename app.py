@@ -37,11 +37,13 @@ def create_app(overrides=None):
     from blueprints.admin import admin_bp
     from blueprints.superadmin import super_bp
     from blueprints.clearance import clearance_bp
+    from blueprints.custody import custody_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(super_bp, url_prefix='/super')
     app.register_blueprint(clearance_bp, url_prefix='/clearance')
+    app.register_blueprint(custody_bp, url_prefix='/custody')
 
     from utils.dates import register_filters
     register_filters(app)
