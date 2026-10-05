@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+{% block heading %}تذكير: عهدة متأخرة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا <strong>{{ c.recipient_name }}</strong>،</p>
+<p style="margin:0 0 15px;">نذكّركم بأن العهدة التالية تجاوزت موعد إرجاعها ({{ c.expected_return_date|date }}) بـ <strong style="color:#b91c1c;">{{ days }}</strong> يومًا:</p>
+<div style="background:#fef2f2;border:2px dashed #fca5a5;padding:20px;border-radius:10px;text-align:center;margin:25px 0;">
+  <h2 style="margin:0;color:#991b1b;font-size:26px;font-weight:900;">{{ c.item_name }}</h2>
+  <p style="margin:8px 0 0;font-size:16px;color:#64748b;">قسم {{ c.dept_label }} — رقم العهدة <span dir="ltr">{{ c.code }}</span></p>
+</div>
+<p style="margin:0 0 15px;">يرجى إرجاعها للقسم أو التواصل معه لتمديد الموعد.</p>
+<p style="text-align:center;margin:25px 0 0;"><a href="{{ link }}" style="color:#1d4ed8;font-weight:bold;">عرض إشعار العهدة</a></p>
+{% endblock %}

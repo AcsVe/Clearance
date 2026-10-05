@@ -144,6 +144,11 @@ def create_form(data, actor):
                 d.email_list, f'طلب توقيع براءة ذمة: {form.employee_name}',
                 'emails/clearance_sign_request.html', tenant, kind='clearance_sign_request',
                 entity=('clearance', form.id), form=form, dept=d, link=links[d.id]))
+    from services.notify import notify, users_with_perm
+    for d in departments:
+        notify(users_with_perm('clearance.sign', d.id), f'طلب توقيع براءة ذمة: {form.employee_name}',
+               f'بانتظار رد قسم {d.name}', f'/clearance/{form.id}/sign/{d.id}',
+               'clearance_sign', exclude_user_id=actor.id)
     return form, report
 
 
@@ -194,6 +199,16 @@ def record_response(form_id, department_id, status, note, user):
           old=old, new=status, note=note or None, completed=complete_now)
     db.session.commit()
     report = send_completion_emails(form) if notify else MailReport()
+    if notify:
+        from services.notify import notify as push_notice, users_with_perm
+        state = 'معلقة' if form.has_held else 'خالية'
+        push_notice(users_with_perm('clearance.manage'), f'اكتملت براءة ذمة: {form.employee_name}',
+                    f'النتيجة: {state}', f'/clearance/{form.id}', 'clearance_complete',
+                    exclude_user_id=user.id)
+        if form.has_held:
+            push_notice(users_with_perm('finance.settle'), f'براءة ذمة بانتظار التسوية: {form.employee_name}',
+                        '، '.join(r.name for r in form.held_responses), '/clearance/finance',
+                        'clearance_held', exclude_user_id=user.id)
     return form, complete_now, report
 
 
@@ -306,4 +321,7 @@ def settle(form, note, user):
         hr.email_list if hr else [], f'تسوية مالية: براءة ذمة {form.employee_name}',
         'emails/clearance_settled.html', g.tenant, kind='clearance_settled',
         entity=('clearance', form.id), form=form, note=note))
+    from services.notify import notify, users_with_perm
+    notify(users_with_perm('clearance.manage'), f'تمت التسوية المالية: {form.employee_name}',
+           note or None, f'/clearance/{form.id}', 'clearance_settled', exclude_user_id=user.id)
     return report

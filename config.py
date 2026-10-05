@@ -82,6 +82,11 @@ def build_config(overrides=None):
         'MS_CLIENT_SECRET': os.environ.get('MS_CLIENT_SECRET', ''),
         'MS_SENDER_EMAIL': os.environ.get('MS_SENDER_EMAIL', ''),
         'DISABLE_REMINDERS': _flag('DISABLE_REMINDERS'),
+        'OVERDUE_REMINDER_DAYS': int(os.environ.get('OVERDUE_REMINDER_DAYS', '7')),
+        # Web Push (optional). Generate once with: flask generate-vapid
+        'VAPID_PUBLIC_KEY': os.environ.get('VAPID_PUBLIC_KEY', ''),
+        'VAPID_PRIVATE_KEY': os.environ.get('VAPID_PRIVATE_KEY', ''),
+        'VAPID_CLAIMS_EMAIL': os.environ.get('VAPID_CLAIMS_EMAIL', ''),
         'TRUST_PROXY': _flag('TRUST_PROXY', '1' if not dev else '0'),
         # Sessions
         'PERMANENT_SESSION_LIFETIME': timedelta(hours=int(os.environ.get('SESSION_HOURS', '12'))),

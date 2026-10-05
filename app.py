@@ -38,12 +38,15 @@ def create_app(overrides=None):
     from blueprints.superadmin import super_bp
     from blueprints.clearance import clearance_bp
     from blueprints.custody import custody_bp
+    from blueprints.notifications import notifications_bp
     app.register_blueprint(auth_bp)
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(super_bp, url_prefix='/super')
     app.register_blueprint(clearance_bp, url_prefix='/clearance')
     app.register_blueprint(custody_bp, url_prefix='/custody')
+    app.register_blueprint(notifications_bp, url_prefix='/notifications')
+    import services.reminders  # noqa: F401  (registers scheduled jobs)
 
     from utils.dates import register_filters
     register_filters(app)
@@ -125,7 +128,17 @@ def _register_request_hooks(app):
     @app.context_processor
     def inject():
         tenant = g.get('tenant')
+        user = g.get('user')
+        unread = failures = 0
+        if user is not None:
+            from models import Notification, EmailLog
+            unread = Notification.query.filter_by(user_id=user.id, read_at=None).count()
+            if user.has_perm('email_log.view'):
+                failures = EmailLog.query.filter(EmailLog.status != 'sent',
+                                                 EmailLog.acknowledged.is_(False)).count()
         return {
+            'unread_notifications': unread,
+            'email_failures': failures,
             'current_user': g.get('user'),
             'current_tenant': tenant,
             'superadmin': g.get('superadmin'),

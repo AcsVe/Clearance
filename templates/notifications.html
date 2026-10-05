@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}الإشعارات{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>الإشعارات</h1>
+<div class="actions">
+  {% if push_enabled %}<button class="btn secondary" type="button" id="push-toggle" data-csrf="{{ csrf_token() }}">🔔 تفعيل الإشعارات على هذا الجهاز</button>{% endif %}
+  <form method="post" action="{{ url_for('notifications.read_all') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn secondary" type="submit">تعليم الكل كمقروء</button></form>
+</div></div>
+<p class="hint" id="push-status"></p>
+<div class="card">
+{% for n in rows %}
+  <a class="notif {{ 'unread' if not n.read_at }}" href="{{ url_for('notifications.open_one', nid=n.id) }}">
+    <b>{{ n.title }}</b>{% if n.body %}<span>{{ n.body }}</span>{% endif %}
+    <small class="muted">{{ n.created_at|datetime }}</small>
+  </a>
+{% else %}<p class="muted">لا توجد إشعارات.</p>{% endfor %}
+</div>
+{% if push_enabled %}<script src="{{ url_for('static', filename='js/push.js') }}" defer></script>{% endif %}
+{% endblock %}
