@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}الأدوار{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>الأدوار والصلاحيات</h1><a class="btn" href="{{ url_for('admin.role_form') }}">+ دور جديد</a></div>
+<div class="card table-wrap"><table>
+<thead><tr><th>الدور</th><th>الوصف</th><th>الصلاحيات</th><th></th></tr></thead>
+<tbody>{% for r in roles %}
+<tr><td><b>{{ r.name }}</b></td><td class="muted">{{ r.description or '' }}</td>
+<td>{% for c in r.permission_codes|sort %}<span class="badge">{{ permissions[c][0] if c in permissions else c }}</span> {% endfor %}</td>
+<td><a class="btn small secondary" href="{{ url_for('admin.role_form', role_id=r.id) }}">تعديل</a></td></tr>
+{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block title %}سجل البريد{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>سجل البريد</h1>
+<div style="display:flex;gap:8px">
+  <a class="btn secondary" href="{{ url_for('admin.email_log') }}">الكل</a>
+  <a class="btn secondary" href="{{ url_for('admin.email_log', failed=1) }}">الفاشلة فقط</a>
+  <form method="post" action="{{ url_for('admin.email_log_ack') }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn" type="submit">تعليم الأخطاء كمقروءة</button></form>
+</div></div>
+<div class="card table-wrap"><table>
+<thead><tr><th>الوقت (UTC)</th><th>الحالة</th><th>المستلمون</th><th>الموضوع</th><th>الخطأ</th></tr></thead>
+<tbody>{% for r in rows %}
+<tr><td class="mono">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+<td>{% if r.status == 'sent' %}<span class="badge ok">أُرسل</span>{% elif r.status == 'skipped' %}<span class="badge warn">لم يُرسل</span>{% else %}<span class="badge bad">فشل</span>{% endif %}
+{% if r.status != 'sent' and not r.acknowledged %} <span class="badge warn">جديد</span>{% endif %}</td>
+<td class="mono">{{ r.recipients }}</td><td>{{ r.subject }}</td><td class="muted">{{ r.error or '' }}</td></tr>
+{% else %}<tr><td colspan="5" class="muted">لا توجد رسائل</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

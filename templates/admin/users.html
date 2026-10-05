@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block title %}المستخدمون{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>المستخدمون</h1>
+  <form method="get" style="display:flex;gap:8px">
+    <input type="text" name="q" value="{{ q }}" placeholder="بحث بالاسم أو البريد">
+    <button class="btn secondary" type="submit">بحث</button>
+  </form>
+  <a class="btn" href="{{ url_for('admin.user_new') }}">+ مستخدم جديد</a>
+</div>
+<div class="card table-wrap"><table>
+<thead><tr><th>الاسم</th><th>اسم المستخدم</th><th>البريد</th><th>الأدوار</th><th>الأقسام</th><th>الحالة</th><th></th></tr></thead>
+<tbody>
+{% for u in users %}
+<tr>
+  <td>{{ u.full_name }}</td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
+  <td>{% for r in u.roles %}<span class="badge">{{ r.name }}</span> {% endfor %}</td>
+  <td>{% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</td>
+  <td>{% if not u.is_active %}<span class="badge bad">موقوف</span>
+      {% elif u.locked_until and u.locked_until > now %}<span class="badge warn">مقفل مؤقتًا</span>
+      {% else %}<span class="badge ok">فعّال</span>{% endif %}</td>
+  <td><a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">تعديل</a></td>
+</tr>
+{% else %}<tr><td colspan="7" class="muted">لا يوجد مستخدمون</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
