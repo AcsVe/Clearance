@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% from 'custody/_macros.html' import custody_badge %}
+{% block title %}عهدي{% endblock %}
+{% block content %}
+<h1>العهد المسجلة باسمي</h1>
+<div class="card table-wrap"><table>
+<thead><tr><th>العهدة</th><th>القسم</th><th>تاريخ التسليم</th><th>الحالة</th><th></th></tr></thead>
+<tbody>{% for c in rows %}
+<tr><td>{{ c.item_name }}<br><small class="mono muted">{{ c.code }}</small></td><td>{{ c.dept_label }}</td>
+<td>{{ c.handed_at_raw or (c.handed_at|date) }}</td><td>{{ custody_badge(c.status) }}</td>
+<td><a class="btn small secondary" href="{{ url_for('custody.print_receipt', cid=c.id) }}" target="_blank" rel="noopener">الإشعار</a></td></tr>
+{% else %}<tr><td colspan="5" class="muted">لا توجد عهد باسمك</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% from 'custody/_macros.html' import custody_badge %}
+{% block title %}العهد العينية{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>العهد العينية</h1>
+  <form method="get" style="display:flex;gap:8px;flex-wrap:wrap">
+    <select name="dept"><option value="">كل الأقسام المتاحة</option>
+      {% for d in depts %}<option value="{{ d.id }}" {% if d.id == dept_id %}selected{% endif %}>{{ d.icon }} {{ d.name }}</option>{% endfor %}</select>
+    <select name="status"><option value="">كل الحالات</option>
+      <option value="handed" {% if status == 'handed' %}selected{% endif %}>مسلمة</option>
+      <option value="returned" {% if status == 'returned' %}selected{% endif %}>مسترجعة</option></select>
+    <input type="text" name="q" value="{{ q }}" placeholder="العهدة أو المستلم">
+    <button class="btn secondary" type="submit">عرض</button>
+  </form>
+  {% if can_add %}<a class="btn" href="{{ url_for('custody.new') }}">+ تسليم عهدة</a>{% endif %}
+</div>
+<div class="card table-wrap"><table>
+<thead><tr><th>العهدة</th><th>المستلم</th><th>القسم</th><th>مسلّم العهدة</th><th>تاريخ التسليم</th><th>الحالة</th><th></th></tr></thead>
+<tbody>{% for c in rows %}
+<tr><td><b>{{ c.item_name }}</b><br><small class="mono muted">{{ c.code }}</small></td>
+<td>{{ c.recipient_name }}<br><small class="mono muted">{{ c.recipient_email or '' }}</small></td>
+<td>{{ c.dept_label }}</td><td>{{ c.handed_by_name or '—' }}</td>
+<td>{{ c.handed_at_raw or (c.handed_at|date) }}</td>
+<td>{{ custody_badge(c.status) }}{% if c.status == 'returned' %}<br><small class="muted">{{ c.returned_at_raw or (c.returned_at|date) }}</small>{% endif %}</td>
+<td><a class="btn small secondary" href="{{ url_for('custody.detail', cid=c.id) }}">فتح</a></td></tr>
+{% else %}<tr><td colspan="7" class="muted">لا توجد عهد</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

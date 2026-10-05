@@ -1,0 +1,12 @@
+{% extends 'emails/base.html' %}
+{% block heading %}إشعار تسليم عهدة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا،</p>
+<p style="margin:0 0 15px;">تم تسليم عهدة من قسم <strong>{{ c.dept_label }}</strong> للموظف <strong>{{ c.recipient_name }}</strong>.</p>
+<div style="background:#f8fafc;border:1px solid #e2e8f0;padding:15px;border-radius:8px;margin:20px 0;font-size:18px;">
+  <p style="margin:0 0 10px;"><strong>العهدة:</strong> {{ c.item_name }}</p>
+  <p style="margin:0;"><strong>مسلم العهدة:</strong> {{ c.handed_by_name }}</p>
+</div>
+<p style="margin:0;font-size:16px;color:#3b82f6;">📌 سيتم إعلامكم آلياً فور إرجاع العهدة.</p>
+<p style="text-align:center;margin:25px 0 0;"><a href="{{ link }}" style="color:#1d4ed8;font-weight:bold;">عرض الإشعار وطباعته</a></p>
+{% endblock %}

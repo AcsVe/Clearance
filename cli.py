@@ -1,6 +1,7 @@
 """Management commands. Passwords are always typed into a hidden prompt on
 the server, never passed as command-line arguments or pasted elsewhere."""
 import getpass
+import os
 
 import click
 
@@ -53,3 +54,53 @@ def register_cli(app):
             seed_default_roles(t.id)
             db.session.commit()
         click.echo('تم')
+
+    @app.cli.command('import-sheets')
+    @click.argument('slug')
+    @click.option('--dir', 'folder', required=True, type=click.Path(exists=True, file_okay=False),
+                  help='مجلد ملفات CSV المصدّرة من Google Sheets')
+    @click.option('--commit', is_flag=True, help='الكتابة فعليًا (بدونها: تقرير فقط)')
+    @click.option('--date-order', type=click.Choice(['dmy', 'mdy']), default='dmy',
+                  help='ترتيب اليوم/الشهر في التواريخ الميلادية الملتبسة')
+    @click.option('--report', 'report_path', default=None, help='حفظ التقرير في ملف')
+    def import_sheets(slug, folder, commit, date_order, report_path):
+        """Import الاقسام / النماذج / الردود / العهد from CSV exports."""
+        from models import Tenant
+        from tenancy import tenant_context
+        from importers.sheets import find_sheet_files, SheetImporter
+        t = Tenant.query.filter_by(slug=slug).first()
+        if not t:
+            raise click.ClickException('منظمة غير موجودة')
+        files = find_sheet_files(folder)
+        click.echo('الملفات: ' + ', '.join(f'{k}={os.path.basename(v)}' for k, v in files.items()))
+        with tenant_context(t.id):
+            imp = SheetImporter(t, files, date_order, app.config.get('TIMEZONE', 'Asia/Amman'))
+            try:
+                report = imp.run()
+            except Exception:
+                db.session.rollback()
+                raise
+            text = report.text()
+            if commit:
+                db.session.commit()
+                text += '\n\n✅ تم الحفظ.'
+            else:
+                db.session.rollback()
+                text += '\n\n(تشغيل تجريبي — لم يُحفظ شيء. أعد التشغيل مع --commit للحفظ)'
+        click.echo(text)
+        if report_path:
+            with open(report_path, 'w', encoding='utf-8') as fh:
+                fh.write(text)
+
+    @app.cli.command('fetch-drive-logos')
+    @click.argument('slug')
+    def fetch_logos(slug):
+        """Download the two logos used by the old print pages from Google Drive."""
+        from models import Tenant
+        from importers.sheets import fetch_drive_logos
+        t = Tenant.query.filter_by(slug=slug).first()
+        if not t:
+            raise click.ClickException('منظمة غير موجودة')
+        for m in fetch_drive_logos(t, app.config['UPLOAD_DIR']):
+            click.echo(m)
+        db.session.commit()

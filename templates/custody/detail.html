@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+{% from 'custody/_macros.html' import custody_badge %}
+{% block title %}{{ c.code }}{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>عهدة: {{ c.item_name }}</h1>
+<a class="btn secondary" href="{{ url_for('custody.print_receipt', cid=c.id) }}" target="_blank" rel="noopener">🖨️ طباعة الإشعار</a></div>
+<div class="card"><div class="kv">
+  <div><b>رقم العهدة:</b> <span class="mono">{{ c.code }}</span></div>
+  <div><b>الحالة:</b> {{ custody_badge(c.status) }}</div>
+  <div><b>المستلم:</b> {{ c.recipient_name }}</div>
+  <div><b>بريد المستلم:</b> <span class="mono">{{ c.recipient_email or '—' }}</span></div>
+  <div><b>القسم:</b> {{ c.dept_label }}</div>
+  <div><b>مسلّم العهدة:</b> {{ c.handed_by_name or '—' }}</div>
+  <div><b>تاريخ التسليم:</b> {{ c.handed_at_raw or (c.handed_at|datetime) }}</div>
+  {% if c.expected_return_date %}<div><b>الإرجاع المتوقع:</b> {{ c.expected_return_date|date }}</div>{% endif %}
+  {% if c.status == 'returned' %}
+  <div><b>مستلم الإرجاع:</b> {{ c.returned_to_name or '—' }}</div>
+  <div><b>تاريخ الإرجاع:</b> {{ c.returned_at_raw or (c.returned_at|datetime) }}</div>
+  {% endif %}
+</div>
+{% if c.notes %}<p style="margin-top:10px"><b>ملاحظات:</b> {{ c.notes }}</p>{% endif %}
+{% if c.source != 'manual' %}<p class="hint">مصدر السجل: {{ 'ورقة Google' if c.source == 'sheet' else 'استيراد ورقي (OCR)' }}</p>{% endif %}
+</div>
+{% if can_manage and c.status == 'handed' %}
+<div class="card"><h2>استرجاع العهدة</h2>
+<form method="post" action="{{ url_for('custody.do_return', cid=c.id) }}" data-confirm="تأكيد استرجاع العهدة؟">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>مستلم الإرجاع بالقسم</label><input type="text" name="returned_to_name" value="{{ current_user.full_name }}"></div>
+    <div><label>بريده</label><input type="email" name="returned_to_email" value="{{ current_user.email or '' }}" dir="ltr"></div>
+  </div>
+  <button class="btn" type="submit">✅ تم الاسترجاع</button>
+</form></div>
+{% endif %}
+{% endblock %}

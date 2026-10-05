@@ -18,6 +18,13 @@
   {% if has_perm('finance.settle') %}
   <a class="tile" href="{{ url_for('clearance.finance') }}"><span class="ic">💰</span><b>بوابة المحاسبة</b><small>النماذج المعلقة والتسوية</small></a>
   {% endif %}
+  {% if has_perm('custody.manage') or has_perm('custody.manage_all') %}
+  <a class="tile" href="{{ url_for('custody.new') }}"><span class="ic">📦</span><b>تسليم عهدة</b><small>تسجيل عهدة عينية لموظف</small></a>
+  {% endif %}
+  {% if has_perm('custody.manage') or has_perm('custody.view_all') or has_perm('custody.manage_all') %}
+  <a class="tile" href="{{ url_for('custody.index') }}"><span class="ic">🗂️</span><b>العهد العينية</b><small>المسلّمة أولًا، والاسترجاع</small></a>
+  {% endif %}
+  <a class="tile" href="{{ url_for('custody.mine') }}"><span class="ic">🎒</span><b>عهدي</b><small>العهد المسجلة باسمي</small></a>
   <a class="tile" href="{{ url_for('clearance.mine') }}"><span class="ic">🪪</span><b>براءة ذمتي</b><small>حالة نموذجك إن وُجد</small></a>
   {% if has_perm('users.manage') %}
   <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والصلاحيات وربط الأقسام</small></a>
@@ -32,5 +39,4 @@
   <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic">📜</span><b>سجل التدقيق</b><small>من فعل ماذا ومتى</small></a>
   {% endif %}
 </div>
-<p class="hint" style="margin-top:18px">وحدة العهد العينية تُضاف في المرحلة التالية.</p>
 {% endblock %}

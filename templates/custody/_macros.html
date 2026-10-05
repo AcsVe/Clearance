@@ -1,0 +1,3 @@
+{% macro custody_badge(status) -%}
+<span class="badge {{ 'warn' if status == 'handed' else 'ok' }}">{{ 'مسلمة' if status == 'handed' else 'مسترجعة' }}</span>
+{%- endmacro %}

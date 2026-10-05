@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% block title %}تسليم عهدة{% endblock %}
+{% block content %}
+<h1>تسليم عهدة</h1>
+{% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>القسم</label><select name="department_id" required>
+      {% for d in depts %}<option value="{{ d.id }}" {% if data.get('department_id')|string == d.id|string %}selected{% endif %}>{{ d.icon }} {{ d.name }}</option>{% endfor %}
+    </select></div>
+    <div><label>العهدة (الوصف)</label><input type="text" name="item_name" value="{{ data.get('item_name', '') }}" required></div>
+  </div>
+  <div class="row">
+    <div><label>اسم المستلم</label><input type="text" name="recipient_name" value="{{ data.get('recipient_name', '') }}" list="people" required></div>
+    <div><label>بريد المستلم</label><input type="email" name="recipient_email" value="{{ data.get('recipient_email', '') }}" list="emails" dir="ltr"></div>
+    <div><label>تاريخ الإرجاع المتوقع (اختياري)</label><input type="text" name="expected_return_date" value="{{ data.get('expected_return_date', '') }}" placeholder="YYYY-MM-DD" dir="ltr" pattern="\d{4}-\d{2}-\d{2}"></div>
+  </div>
+  <div class="row">
+    <div><label>مسلّم العهدة</label><input type="text" name="handed_by_name" value="{{ data.get('handed_by_name', current_user.full_name) }}"></div>
+    <div><label>بريد مسلّم العهدة</label><input type="email" name="handed_by_email" value="{{ data.get('handed_by_email', current_user.email or '') }}" dir="ltr"></div>
+  </div>
+  <label>ملاحظات</label><textarea name="notes" rows="2">{{ data.get('notes', '') }}</textarea>
+  <p class="hint">يُرسل إشعار للمستلم، ولبريد القسم ومسلّم العهدة، مع رابط لعرض الإشعار وطباعته.</p><br>
+  <button class="btn" type="submit">تسليم وحفظ</button>
+  <a class="btn secondary" href="{{ url_for('custody.index') }}">إلغاء</a>
+</form></div>
+<datalist id="people">{% for u in users %}<option value="{{ u.full_name }}">{% endfor %}</datalist>
+<datalist id="emails">{% for u in users if u.email %}<option value="{{ u.email }}">{{ u.full_name }}</option>{% endfor %}</datalist>
+{% endblock %}
