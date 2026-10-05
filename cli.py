@@ -104,3 +104,19 @@ def register_cli(app):
         for m in fetch_drive_logos(t, app.config['UPLOAD_DIR']):
             click.echo(m)
         db.session.commit()
+
+    @app.cli.command('generate-vapid')
+    def generate_vapid():
+        """Print a new VAPID key pair for Web Push (paste into config.env on the server)."""
+        import base64
+        from py_vapid import Vapid01
+        from cryptography.hazmat.primitives import serialization
+        v = Vapid01()
+        v.generate_keys()
+        pub = v.public_key.public_bytes(serialization.Encoding.X962,
+                                        serialization.PublicFormat.UncompressedPoint)
+        priv = v.private_key.private_numbers().private_value.to_bytes(32, 'big')
+        b64 = lambda b: base64.urlsafe_b64encode(b).decode().rstrip('=')
+        click.echo('أضف السطرين التاليين إلى config.env على الخادم ثم أعد تشغيل الخدمة:')
+        click.echo(f'VAPID_PUBLIC_KEY={b64(pub)}')
+        click.echo(f'VAPID_PRIVATE_KEY={b64(priv)}')

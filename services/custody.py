@@ -95,6 +95,10 @@ def add_custody(data, actor, department):
             mgmt, f'إشعار تسليم عهدة: {c.recipient_name}',
             'emails/custody_handed_manager.html', g.tenant, kind='custody_handed',
             entity=('custody', c.id), c=c, link=link))
+    from services.notify import notify, users_with_perm
+    notify(users_with_perm('custody.manage', department.id), f'تسليم عهدة: {c.item_name}',
+           f'للموظف {c.recipient_name} — قسم {department.name}', f'/custody/{c.id}',
+           'custody_handed', exclude_user_id=actor.id)
     return c, report
 
 
@@ -120,4 +124,9 @@ def return_custody(c, returned_to_name, returned_to_email, actor):
             recipients, f'إشعار استرجاع عهدة: {c.item_name}', 'emails/custody_returned.html',
             g.tenant, kind='custody_returned', entity=('custody', c.id), c=c,
             link=receipt_link(c)))
+    from services.notify import notify, users_with_perm
+    if c.department_id:
+        notify(users_with_perm('custody.manage', c.department_id), f'استرجاع عهدة: {c.item_name}',
+               f'من {c.recipient_name} — استلمها {name}', f'/custody/{c.id}', 'custody_returned',
+               exclude_user_id=actor.id)
     return report

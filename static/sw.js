@@ -1,6 +1,6 @@
 // App-shell cache + offline page only. No business data is cached:
 // clearance and custody records always need a live connection.
-const CACHE_NAME = 'clearance-shell-v1';
+const CACHE_NAME = 'clearance-shell-v2';
 const SHELL = ['/static/offline.html', '/static/css/app.css', '/static/js/app.js',
   '/static/logo.png', '/static/icon-192.png', '/static/icon-512.png'];
 
@@ -22,4 +22,23 @@ self.addEventListener('fetch', (e) => {
   if (req.method === 'GET' && url.origin === location.origin && url.pathname.startsWith('/static/')) {
     e.respondWith(caches.match(req).then((hit) => hit || fetch(req)));
   }
+});
+
+// Web Push: show the notification even when the app is closed.
+self.addEventListener('push', (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { title: e.data && e.data.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || 'إشعار جديد', {
+    body: d.body || '', icon: '/static/icon-192.png', badge: '/static/icon-192.png',
+    dir: 'rtl', lang: 'ar', data: { url: d.url || '/' },
+  }));
+});
+self.addEventListener('notificationclick', (e) => {
+  e.notification.close();
+  const url = (e.notification.data && e.notification.data.url) || '/';
+  const target = url.startsWith('/') && !url.startsWith('//') ? url : '/';
+  e.waitUntil(clients.matchAll({ type: 'window', includeUncontrolled: true }).then((ws) => {
+    for (const w of ws) { if ('focus' in w) { w.navigate(target); return w.focus(); } }
+    return clients.openWindow(target);
+  }));
 });

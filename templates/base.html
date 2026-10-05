@@ -24,6 +24,7 @@
     {% if has_perm('settings.manage') %}<a href="{{ url_for('admin.settings') }}">الإعدادات</a>{% endif %}
   </nav>
   <div class="who">
+    <a class="bell" href="{{ url_for('notifications.index') }}" title="الإشعارات">🔔{% if unread_notifications %}<span class="count">{{ unread_notifications }}</span>{% endif %}</a>
     <span>{{ current_user.full_name }}</span>
     <a href="{{ url_for('auth.change_password') }}" style="color:#dbe6f3">كلمة المرور</a>
     <form method="post" action="{{ url_for('auth.logout') }}">
@@ -34,6 +35,7 @@
   {% endif %}
 </header>
 <main>
+  {% if email_failures %}<div class="alert warning">⚠️ توجد {{ email_failures }} رسالة بريد لم تُرسل. <a href="{{ url_for('admin.email_log', failed=1) }}">عرض التفاصيل</a></div>{% endif %}
   {% include '_flash.html' %}
   {% block content %}{% endblock %}
 </main>
