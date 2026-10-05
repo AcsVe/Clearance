@@ -1,0 +1,13 @@
+{% extends 'emails/base.html' %}
+{% block heading %}إشعار إداري{% endblock %}
+{% block content %}
+{% if not held %}
+<p style="margin:0 0 15px;">تم إصدار براءة الذمة بنجاح للموظف <strong>{{ form.employee_name }}</strong> وهي خالية.</p>
+{% else %}
+<p style="margin:0 0 15px;">توجد التزامات معلقة للموظف <strong>{{ form.employee_name }}</strong> في:</p>
+<ul style="padding-right:20px;margin:0;color:#b91c1c;">
+{% for d in held %}<li style="margin-bottom:8px;"><strong>{{ d.name }}</strong>{% if d.note %} ( {{ d.note }} ){% endif %}</li>{% endfor %}
+</ul>
+{% endif %}
+<p style="margin:20px 0 0;font-size:15px;color:#64748b;">رقم المرجع: <span dir="ltr">{{ form.code }}</span></p>
+{% endblock %}

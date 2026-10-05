@@ -6,6 +6,19 @@
 <p class="muted" style="margin-bottom:14px">أقسامك: {% for d in current_user.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</p>
 {% endif %}
 <div class="grid">
+  {% if has_perm('clearance.create') %}
+  <a class="tile" href="{{ url_for('clearance.new') }}"><span class="ic">📝</span><b>نموذج براءة ذمة جديد</b><small>لموظف مستقيل</small></a>
+  {% endif %}
+  {% if has_perm('clearance.view_all') %}
+  <a class="tile" href="{{ url_for('clearance.index') }}"><span class="ic">📋</span><b>نماذج براءة الذمة</b><small>المتابعة والتذكير والإقفال</small></a>
+  {% endif %}
+  {% if has_perm('clearance.sign') %}
+  <a class="tile" href="{{ url_for('clearance.sign_list') }}"><span class="ic">✍️</span><b>بوابة القسم</b><small>الطلبات بانتظار توقيع قسمك</small></a>
+  {% endif %}
+  {% if has_perm('finance.settle') %}
+  <a class="tile" href="{{ url_for('clearance.finance') }}"><span class="ic">💰</span><b>بوابة المحاسبة</b><small>النماذج المعلقة والتسوية</small></a>
+  {% endif %}
+  <a class="tile" href="{{ url_for('clearance.mine') }}"><span class="ic">🪪</span><b>براءة ذمتي</b><small>حالة نموذجك إن وُجد</small></a>
   {% if has_perm('users.manage') %}
   <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والصلاحيات وربط الأقسام</small></a>
   {% endif %}
@@ -19,5 +32,5 @@
   <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic">📜</span><b>سجل التدقيق</b><small>من فعل ماذا ومتى</small></a>
   {% endif %}
 </div>
-<p class="hint" style="margin-top:18px">وحدتا براءة الذمة والعهد العينية تُضافان في المرحلتين التاليتين.</p>
+<p class="hint" style="margin-top:18px">وحدة العهد العينية تُضاف في المرحلة التالية.</p>
 {% endblock %}

@@ -1,0 +1,7 @@
+{% extends 'emails/base.html' %}
+{% block heading %}ملاحظة هامة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">ملاحظة من شؤون الموظفين بخصوص الموظف <strong>{{ form.employee_name }}</strong>:</p>
+<div style="background:#fef2f2;border-right:4px solid #b91c1c;padding:15px;border-radius:4px;margin:20px 0;font-size:18px;color:#991b1b;font-weight:bold;white-space:pre-line;">{{ note }}</div>
+<p style="margin:0;font-size:15px;color:#64748b;">رقم المرجع: <span dir="ltr">{{ form.code }}</span></p>
+{% endblock %}

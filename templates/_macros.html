@@ -1,0 +1,13 @@
+{% macro form_badge(status) -%}
+{%- set cls = {'in_progress': 'warn', 'complete': 'ok', 'closed': '', 'cancelled': 'bad'} -%}
+<span class="badge {{ cls.get(status, '') }}">{{ {'in_progress': 'قيد التنفيذ', 'complete': 'مكتمل', 'closed': 'مقفل', 'cancelled': 'ملغي'}.get(status, status) }}</span>
+{%- endmacro %}
+
+{% macro resp_badge(status) -%}
+{%- set cls = {'pending': 'warn', 'cleared': 'ok', 'held': 'bad'} -%}
+<span class="badge {{ cls.get(status, '') }}">{{ {'pending': 'قيد الانتظار', 'cleared': 'خالية الذمة', 'held': 'معلق'}.get(status, status) }}</span>
+{%- endmacro %}
+
+{% macro progress(p) -%}
+<div class="progress" title="{{ p }}%"><span class="p{{ (p // 10) * 10 }}"></span></div><small class="muted">{{ p }}%</small>
+{%- endmacro %}

@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import resp_badge %}
+{% block title %}توقيع براءة ذمة{% endblock %}
+{% block content %}
+<h1>توقيع براءة ذمة — {{ resp.icon }} {{ resp.name }}</h1>
+{% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+<div class="card"><div class="kv">
+  <div><b>الموظف:</b> {{ form.employee_name }}</div>
+  <div><b>رقم الموظف:</b> {{ form.employee_number or '—' }}</div>
+  <div><b>قسم الموظف:</b> {{ form.employee_department or '—' }}</div>
+  <div><b>تاريخ الاستقالة:</b> {{ form.resign_date|date(form.resign_date_raw) or '—' }}</div>
+  <div><b>رقم المرجع:</b> <span class="mono">{{ form.code }}</span></div>
+  <div><b>حالة قسمك الحالية:</b> {{ resp_badge(resp.status) }}</div>
+</div></div>
+{% if form.status in ('closed', 'cancelled') %}
+<div class="alert warning">{{ 'الملف مقفل من المحاسبة، لا يمكن التعديل' if form.status == 'closed' else 'النموذج ملغي' }}</div>
+{% else %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="radio-cards">
+    <label><input type="radio" name="status" value="cleared" {% if resp.status != 'held' %}checked{% endif %}> ✅ خالية الذمة</label>
+    <label><input type="radio" name="status" value="held" {% if resp.status == 'held' %}checked{% endif %}> ⚠️ معلق (يوجد التزام)</label>
+  </div>
+  <label>ملاحظة (إلزامية عند التعليق)</label>
+  <textarea name="note" rows="3">{{ resp.note or '' }}</textarea><br><br>
+  <button class="btn" type="submit">حفظ الرد</button>
+  <a class="btn secondary" href="{{ url_for('clearance.sign_list') }}">رجوع</a>
+</form></div>
+{% endif %}
+{% endblock %}

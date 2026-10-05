@@ -1,0 +1,10 @@
+{% extends 'emails/base.html' %}
+{% block heading %}طلب توقيع براءة ذمة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا <strong>{{ dept.manager_name or dept.name }}</strong>،</p>
+<p style="margin:0 0 25px;">يوجد طلب براءة ذمة بانتظار توقيعكم للموظف <strong style="color:#1e3a8a;background:#eff6ff;padding:2px 8px;border-radius:4px;">{{ form.employee_name }}</strong>.</p>
+<div style="text-align:center;margin:30px 0;">
+  <a href="{{ link }}" style="background:linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);background-color:#1d4ed8;color:#ffffff;padding:15px 35px;text-decoration:none;border-radius:10px;font-weight:bold;font-size:18px;display:inline-block;box-shadow:0 4px 6px rgba(37,99,235,0.3);">🔑 الدخول للتوقيع - {{ dept.name }}</a>
+</div>
+<p style="font-size:16px;color:#64748b;text-align:center;">يتطلب الرابط تسجيل الدخول بحسابك المرتبط بالقسم، ويبطل تلقائيًا بعد الرد.</p>
+{% endblock %}
