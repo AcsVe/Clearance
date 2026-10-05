@@ -1,0 +1,14 @@
+{% extends 'emails/base.html' %}
+{% block heading %}تحديث براءة الذمة{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا <strong>{{ form.employee_name }}</strong>،</p>
+{% if not held %}
+<p style="margin:0 0 15px;">نسعد بإعلامكم بأن براءة الذمة جاهزة الآن وهي <strong style="color:#16a34a;">خالية</strong>.</p>
+<p>يمكنكم المتابعة مع إدارة شؤون الموظفين.</p>
+{% else %}
+<p style="margin:0 0 15px;">يرجى استكمال براءة الذمة لوجود التزامات:</p>
+<ul style="padding-right:20px;margin:0;color:#b91c1c;">
+{% for d in held %}<li style="margin-bottom:8px;"><strong>{{ d.name }}</strong>{% if d.note %} ( {{ d.note }} ){% endif %}</li>{% endfor %}
+</ul>
+{% endif %}
+{% endblock %}

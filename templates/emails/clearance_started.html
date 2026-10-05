@@ -1,0 +1,11 @@
+{% extends 'emails/base.html' %}
+{% block heading %}إشعار ببدء الإجراءات{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا <strong>{{ form.employee_name }}</strong>،</p>
+<p style="margin:0 0 25px;">نود إعلامكم بأنه تم البدء بمعاملة براءة الذمة الخاصة بكم في المؤسسة.</p>
+<div style="background:#f8fafc;border:2px dashed #cbd5e1;padding:20px;border-radius:10px;text-align:center;margin:25px 0;">
+  <p style="margin:0 0 5px;font-size:16px;color:#64748b;font-weight:bold;">رقم المرجع الخاص بكم</p>
+  <h2 style="margin:0;color:#1e3a8a;font-size:36px;letter-spacing:3px;font-weight:900;" dir="ltr">{{ form.code }}</h2>
+</div>
+<p style="margin:25px 0 0;">سيتم إشعاركم فور اكتمال جميع التوقيعات والتسويات المالية.</p>
+{% endblock %}

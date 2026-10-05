@@ -60,6 +60,23 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .auth-card form{text-align:right}.auth-card .field{margin-bottom:14px}
 .auth-card .btn{width:100%;justify-content:center;padding:12px;margin-top:6px}
 .auth-card .links{margin-top:14px;font-size:.86rem}
-.muted{color:var(--muted)}.mono{font-family:Consolas,monospace;direction:ltr;unicode-bidi:embed}
+.muted{color:var(--muted)}.kv .mono{white-space:nowrap}.mono{font-family:Consolas,monospace;direction:ltr;unicode-bidi:embed}
 pre.details{white-space:pre-wrap;font-size:.78rem;direction:ltr;text-align:left;max-width:380px}
 @media (max-width:640px){.topbar nav{order:3;width:100%}main{padding:16px 12px 50px}}
+/* progress bar: width via class (no inline style needed) */
+.progress{height:8px;background:#e6ecf1;border-radius:6px;overflow:hidden;width:120px;display:inline-block;vertical-align:middle;margin-left:6px}
+.progress span{display:block;height:100%;background:var(--accent)}
+.progress .p0{width:0}.progress .p10{width:10%}.progress .p20{width:20%}.progress .p30{width:30%}.progress .p40{width:40%}
+.progress .p50{width:50%}.progress .p60{width:60%}.progress .p70{width:70%}.progress .p80{width:80%}.progress .p90{width:90%}.progress .p100{width:100%;background:var(--ok)}
+.kv{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+.kv>div{background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
+.kv>div>b{color:var(--navy)}
+.actions{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-start}
+.actions form{display:inline}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+.tabs a{padding:6px 14px;border-radius:20px;background:#e7edf3;color:var(--navy);font-weight:700;font-size:.88rem}
+.tabs a.on{background:var(--accent);color:#fff}
+.radio-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
+.radio-cards label{border:2px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;font-size:1rem}
+.radio-cards input{margin-left:8px}
+.note-held{background:#fef2f2;border-right:4px solid var(--bad);padding:10px;border-radius:6px;color:#991b1b}

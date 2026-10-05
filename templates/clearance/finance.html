@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}المحاسبة{% endblock %}
+{% block content %}
+<h1>بوابة المحاسبة</h1>
+<h2>بانتظار التسوية ({{ pending|length }})</h2>
+{% for f in pending %}
+<div class="card">
+  <div class="toolbar" style="margin-bottom:8px">
+    <b>{{ f.employee_name }} <span class="mono muted">{{ f.code }}</span></b>
+    <a class="btn small secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">🖨️ طباعة</a>
+  </div>
+  {% for r in f.held_responses %}<div class="note-held" style="margin-bottom:6px"><b>{{ r.icon }} {{ r.name }}:</b> {{ r.note or '—' }}</div>{% endfor %}
+  {% if f.hr_note %}<p><b>ملاحظة شؤون الموظفين:</b> {{ f.hr_note }}</p>{% endif %}
+  <form method="post" action="{{ url_for('clearance.settle', form_id=f.id) }}" data-confirm="تأكيد التسوية وإقفال النموذج؟" style="margin-top:10px">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>ملاحظة التسوية (اختيارية)</label><textarea name="note" rows="2"></textarea><br><br>
+    <button class="btn" type="submit">✅ تسوية وإقفال</button>
+  </form>
+</div>
+{% else %}<div class="card muted">لا توجد نماذج معلقة.</div>{% endfor %}
+
+<h2>تمت تسويتها</h2>
+<div class="card table-wrap"><table>
+<thead><tr><th>الموظف</th><th>المرجع</th><th>ملاحظة التسوية</th><th>تاريخ التسوية</th><th></th></tr></thead>
+<tbody>{% for f in closed %}
+<tr><td>{{ f.employee_name }}</td><td class="mono">{{ f.code }}</td><td>{{ f.finance_note or '—' }}</td><td>{{ f.settled_at|date or f.closed_at|date }}</td>
+<td><a class="btn small secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">إثبات التسوية</a></td></tr>
+{% else %}<tr><td colspan="5" class="muted">لا يوجد</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,10 @@
+{% extends 'emails/base.html' %}
+{% block heading %}تسوية مالية نهائية{% endblock %}
+{% block content %}
+<p style="margin:0 0 15px;">مرحبا،</p>
+<p style="margin:0 0 15px;">تم تسوية براءة الذمة مالياً للموظف <strong>{{ form.employee_name }}</strong>.</p>
+{% if note %}
+<div style="background:#f0fdf4;border-right:4px solid #16a34a;padding:15px;border-radius:4px;margin:20px 0;font-size:18px;color:#166534;white-space:pre-line;"><strong>ملاحظة المحاسبة:</strong> {{ note }}</div>
+{% endif %}
+<p style="margin:0;font-size:15px;color:#64748b;">رقم المرجع: <span dir="ltr">{{ form.code }}</span></p>
+{% endblock %}

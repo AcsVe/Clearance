@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block title %}نموذج براءة ذمة جديد{% endblock %}
+{% block content %}
+<h1>نموذج براءة ذمة جديد</h1>
+{% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
+<div class="card"><form method="post">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>اسم الموظف</label><input type="text" name="employee_name" value="{{ data.get('employee_name', '') }}" required></div>
+    <div><label>رقم الموظف</label><input type="text" name="employee_number" value="{{ data.get('employee_number', '') }}"></div>
+    <div><label>بريد الموظف</label><input type="email" name="employee_email" value="{{ data.get('employee_email', '') }}" dir="ltr"></div>
+  </div>
+  <div class="row">
+    <div><label>قسم الموظف</label><input type="text" name="employee_department" value="{{ data.get('employee_department', '') }}"></div>
+    <div><label>تاريخ الاستقالة</label><input type="text" name="resign_date" value="{{ data.get('resign_date', '') }}" placeholder="YYYY-MM-DD" dir="ltr" pattern="\d{4}-\d{2}-\d{2}"></div>
+  </div>
+  <p class="hint">سيُنشأ سطر "قيد الانتظار" لكل قسم من الأقسام الفعّالة ({{ departments|length }})، ويُرسل للأقسام العادية رابط توقيع، وللموظف رقم المرجع.</p><br>
+  <button class="btn" type="submit">إنشاء وإرسال</button>
+  <a class="btn secondary" href="{{ url_for('clearance.index') }}">إلغاء</a>
+</form></div>
+{% endblock %}

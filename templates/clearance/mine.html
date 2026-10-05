@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import form_badge, progress %}
+{% block title %}براءة ذمتي{% endblock %}
+{% block content %}
+<h1>براءة ذمتي</h1>
+<div class="card table-wrap"><table>
+<thead><tr><th>المرجع</th><th>التقدم</th><th>الحالة</th><th></th></tr></thead>
+<tbody>{% for f in forms %}
+<tr><td class="mono">{{ f.code }}</td><td>{{ progress(f.progress) }}</td><td>{{ form_badge(f.status) }}</td>
+<td><a class="btn small secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">عرض وطباعة</a></td></tr>
+{% else %}<tr><td colspan="4" class="muted">لا توجد نماذج باسمك</td></tr>{% endfor %}</tbody></table></div>
+{% endblock %}

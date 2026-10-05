@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% from '_macros.html' import resp_badge %}
+{% block title %}بوابة القسم{% endblock %}
+{% block content %}
+<h1>طلبات براءة الذمة لأقسامي</h1>
+<p class="muted" style="margin-bottom:12px">{% for d in current_user.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% else %}لا توجد أقسام مرتبطة بحسابك — راجع مدير النظام.{% endfor %}</p>
+<div class="card table-wrap"><table>
+<thead><tr><th>الموظف</th><th>المرجع</th><th>القسم</th><th>حالة القسم</th><th></th></tr></thead>
+<tbody>{% for r in rows %}
+<tr><td>{{ r.form.employee_name }}</td><td class="mono">{{ r.form.code }}</td><td>{{ r.icon }} {{ r.name }}</td>
+<td>{{ resp_badge(r.status) }}{% if r.note %}<br><small class="muted">{{ r.note }}</small>{% endif %}</td>
+<td><a class="btn small" href="{{ url_for('clearance.sign', form_id=r.form_id, dept_id=r.department_id) }}">{{ 'توقيع' if r.status == 'pending' else 'تعديل' }}</a></td></tr>
+{% else %}<tr><td colspan="5" class="muted">لا توجد طلبات بانتظار قسمك 🎉</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}
