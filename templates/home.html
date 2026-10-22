@@ -5,9 +5,20 @@
 {% if current_user.departments %}
 <p class="muted" style="margin-bottom:14px">أقسامك: {% for d in current_user.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</p>
 {% endif %}
+
+{% for title, kpis in sections %}
+<h2 style="margin:6px 0 10px">{{ title }}</h2>
+<div class="kpis">
+  {% for k in kpis %}
+  <a class="kpi {{ k.tone }}" href="{{ k.url }}"><div class="n">{{ k.n }}</div><div class="l">{{ k.label }}</div>{% if k.hint %}<small>{{ k.hint }}</small>{% endif %}</a>
+  {% endfor %}
+</div>
+{% endfor %}
+
+<h2 style="margin:6px 0 10px">الوصول السريع</h2>
 <div class="grid">
   {% if has_perm('users.manage') %}
-  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والصلاحيات وربط الأقسام</small></a>
+  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والمهام وربط الأقسام</small></a>
   {% endif %}
   {% if has_perm('departments.manage') %}
   <a class="tile" href="{{ url_for('admin.departments') }}"><span class="ic">🏢</span><b>الأقسام</b><small>الأقسام العادية وشؤون الموظفين والمحاسبة</small></a>
@@ -19,5 +30,4 @@
   <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic">📜</span><b>سجل التدقيق</b><small>من فعل ماذا ومتى</small></a>
   {% endif %}
 </div>
-<p class="hint" style="margin-top:18px">وحدتا براءة الذمة والعهد العينية تُضافان في المرحلتين التاليتين.</p>
 {% endblock %}

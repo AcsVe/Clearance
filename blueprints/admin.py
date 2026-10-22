@@ -48,15 +48,13 @@ def _admins_remaining(excluding_user_id=None):
 @admin_bp.route('/users')
 @permission_required('users.manage')
 def users():
-    q = (request.args.get('q') or '').strip()
-    query = User.query
-    if q:
-        like = f'%{q.lower()}%'
-        query = query.filter(func.lower(User.full_name).like(like) |
-                             func.lower(User.username).like(like) |
-                             func.lower(func.coalesce(User.email, '')).like(like))
-    return render_template('admin/users.html', users=query.order_by(User.full_name).all(), q=q,
-                           now=utcnow())
+    """Users as cards (grouped by role, with the tasks their roles give them) or as a table; search,
+    filter and sorting run in the browser (static/js/table.js), bulk actions post to users_bulk."""
+    role_counts = dict(db.session.query(UserRole.role_id, func.count(UserRole.user_id))
+                       .group_by(UserRole.role_id).all())
+    return render_template('admin/users.html', users=User.query.order_by(User.full_name).all(),
+                           roles=Role.query.order_by(Role.id).all(), role_counts=role_counts,
+                           permissions=PERMISSIONS, now=utcnow())
 
 
 def _apply_user_form(user, is_new):
@@ -208,6 +206,53 @@ def user_action(user_id):
     return redirect(url_for('admin.user_edit', user_id=user.id))
 
 
+def _bulk_done(n, skipped, verb):
+    msg = f'{verb}: {n}'
+    if skipped:
+        msg += ' — تُرك: ' + '، '.join(skipped)
+    flash(msg, 'success' if n else 'warning')
+
+
+@admin_bp.route('/users/bulk', methods=['POST'])
+@permission_required('users.manage')
+def users_bulk():
+    """Bulk actions on the ticked users: activate / deactivate / delete / logout_all.
+    The signed-in user and the last remaining administrator are never deactivated or deleted."""
+    action = request.form.get('action')
+    if action not in ('activate', 'deactivate', 'delete', 'logout_all'):
+        abort(400)
+    me = g.user.id
+    picked = User.query.filter(User.id.in_(_ids('ids'))).all()
+    done, skipped = 0, []
+    for u in picked:
+        if action in ('deactivate', 'delete'):
+            if u.id == me:
+                skipped.append(f'{u.full_name} (حسابك)')
+                continue
+            # earlier rows of this batch are already applied (autoflush), so this sees the batch so far
+            if u.has_perm('users.manage') and not _admins_remaining(excluding_user_id=u.id):
+                skipped.append(f'{u.full_name} (آخر مدير)')
+                continue
+        if action == 'activate':
+            u.is_active = True
+        elif action == 'deactivate':
+            u.is_active = False
+            u.session_version += 1
+        elif action == 'logout_all':
+            u.session_version += 1
+        else:
+            audit('user.deleted', 'user', u.id, username=u.username, name=u.full_name)
+            db.session.delete(u)
+            done += 1
+            continue
+        audit(f'user.bulk_{action}', 'user', u.id)
+        done += 1
+    db.session.commit()
+    _bulk_done(done, skipped, {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'delete': 'حُذف',
+                               'logout_all': 'أُنهيت جلسات'}[action])
+    return redirect(request.referrer or url_for('admin.users'))
+
+
 # ─────────────────────────── Departments ───────────────────────────
 @admin_bp.route('/departments')
 @permission_required('departments.manage')
@@ -278,12 +323,63 @@ def department_form(dept_id=None):
                            types=DEPARTMENT_TYPES), (400 if errors else 200)
 
 
+def department_in_use(dept):
+    """Why a department cannot be deleted (records that depend on it), or '' when it is free."""
+    reasons = []
+    try:
+        from models import ClearanceResponse, Custody, Employee
+        if ClearanceResponse.query.filter_by(department_id=dept.id).first():
+            reasons.append('له ردود على نماذج براءة ذمة')
+        if Custody.query.filter_by(department_id=dept.id).first():
+            reasons.append('له عهد مسجّلة')
+        if Employee.query.filter_by(department_id=dept.id).first():
+            reasons.append('مرتبط بموظفين')
+    except ImportError:
+        pass
+    return '، '.join(reasons)
+
+
+@admin_bp.route('/departments/bulk', methods=['POST'])
+@permission_required('departments.manage')
+def departments_bulk():
+    action = request.form.get('action')
+    if action not in ('activate', 'deactivate', 'delete'):
+        abort(400)
+    done, skipped = 0, []
+    for d in Department.query.filter(Department.id.in_(_ids('ids'))).all():
+        if action == 'activate':
+            if d.dept_type in ('HR', 'Finance') and Department.query.filter(
+                    Department.dept_type == d.dept_type, Department.is_active.is_(True),
+                    Department.id != d.id).first():
+                skipped.append(f'{d.name} (يوجد قسم فعّال من النوع نفسه)')
+                continue
+            d.is_active = True
+        elif action == 'deactivate':
+            d.is_active = False
+        else:
+            why = department_in_use(d)
+            if why:
+                skipped.append(f'{d.name} ({why} — أوقفه بدلاً من حذفه)')
+                continue
+            audit('department.deleted', 'department', d.id, code=d.code, name=d.name)
+            db.session.delete(d)
+            done += 1
+            continue
+        audit(f'department.bulk_{action}', 'department', d.id)
+        done += 1
+    db.session.commit()
+    _bulk_done(done, skipped, {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'delete': 'حُذف'}[action])
+    return redirect(url_for('admin.departments'))
+
+
 # ───────────────────────────── Roles ─────────────────────────────
 @admin_bp.route('/roles')
 @permission_required('users.manage')
 def roles():
+    role_counts = dict(db.session.query(UserRole.role_id, func.count(UserRole.user_id))
+                       .group_by(UserRole.role_id).all())
     return render_template('admin/roles.html', roles=Role.query.order_by(Role.id).all(),
-                           permissions=PERMISSIONS)
+                           permissions=PERMISSIONS, role_counts=role_counts)
 
 
 @admin_bp.route('/roles/new', methods=['GET', 'POST'])
@@ -326,6 +422,27 @@ def role_form(role_id=None):
                            permissions=PERMISSIONS), (400 if errors else 200)
 
 
+@admin_bp.route('/roles/bulk', methods=['POST'])
+@permission_required('users.manage')
+def roles_bulk():
+    if request.form.get('action') != 'delete':
+        abort(400)
+    done, skipped = 0, []
+    for r in Role.query.filter(Role.id.in_(_ids('ids'))).all():
+        if r.is_system:
+            skipped.append(f'{r.name} (دور أساسي)')
+            continue
+        if UserRole.query.filter_by(role_id=r.id).first():
+            skipped.append(f'{r.name} (مسند إلى مستخدمين)')
+            continue
+        audit('role.deleted', 'role', r.id, name=r.name)
+        db.session.delete(r)
+        done += 1
+    db.session.commit()
+    _bulk_done(done, skipped, 'حُذف')
+    return redirect(url_for('admin.roles'))
+
+
 # ─────────────────────────── Logs ───────────────────────────
 @admin_bp.route('/audit')
 @permission_required('audit.view')
@@ -359,6 +476,28 @@ def email_log_ack():
     audit('email_log.acknowledged', count=n)
     db.session.commit()
     return redirect(url_for('admin.email_log', failed=1))
+
+
+@admin_bp.route('/email-log/bulk', methods=['POST'])
+@permission_required('email_log.view')
+def email_log_bulk():
+    action = request.form.get('action')
+    q = EmailLog.query.filter(EmailLog.id.in_(_ids('ids')))
+    if action == 'ack':
+        n = q.update({'acknowledged': True}, synchronize_session=False)
+        verb = 'عُلِّم كمقروء'
+    elif action == 'delete':
+        n = 0
+        for row in q.all():
+            db.session.delete(row)
+            n += 1
+        verb = 'حُذف'
+    else:
+        abort(400)
+    audit(f'email_log.bulk_{action}', count=n)
+    db.session.commit()
+    _bulk_done(n, [], verb)
+    return redirect(request.referrer or url_for('admin.email_log'))
 
 
 # ─────────────────────────── Settings ───────────────────────────

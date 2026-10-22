@@ -63,3 +63,52 @@ input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent);
 .muted{color:var(--muted)}.mono{font-family:Consolas,monospace;direction:ltr;unicode-bidi:embed}
 pre.details{white-space:pre-wrap;font-size:.78rem;direction:ltr;text-align:left;max-width:380px}
 @media (max-width:640px){.topbar nav{order:3;width:100%}main{padding:16px 12px 50px}}
+/* ── data tables: sticky header, filters, sorting, selection ─────────── */
+.table-wrap{overflow:auto;max-height:72vh;padding:0}
+.table-wrap table thead th{position:sticky;top:0;z-index:2}
+.table-wrap table thead tr.filter-row th{background:#eef2f7;padding:6px;z-index:2}
+.filter-row input,.filter-row select{padding:5px 8px;font-size:.82rem;border-radius:7px;min-width:70px}
+th.sortable{cursor:pointer;user-select:none;white-space:nowrap}
+th.sortable::after{content:' ⇅';opacity:.45;font-size:.8em}
+th.sortable.asc::after{content:' ▲';opacity:1}th.sortable.desc::after{content:' ▼';opacity:1}
+th.sel,td.sel{width:34px;text-align:center}
+td.sel input,th.sel input{width:17px;height:17px;cursor:pointer}
+tr.selected td{background:#eef5ff}
+.list-tools{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.list-tools input[type=search]{max-width:280px}
+.count-pill{background:#e7edf3;color:var(--navy);border-radius:14px;padding:3px 10px;font-weight:700;font-size:.82rem}
+form.bulk-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff;border:1.5px dashed var(--line);
+  border-radius:12px;padding:8px 12px;margin-bottom:12px;color:var(--muted);font-size:.88rem}
+form.bulk-bar.has-selection{border-style:solid;border-color:var(--accent);color:var(--text);background:#f5f9ff}
+form.bulk-bar button{opacity:.55}form.bulk-bar.has-selection button{opacity:1}
+.seg{display:inline-flex;border:1.5px solid var(--line);border-radius:10px;overflow:hidden}
+.seg button{border:0;background:#fff;padding:7px 12px;font-family:inherit;font-weight:700;cursor:pointer;color:var(--navy)}
+.seg button.on{background:var(--accent);color:#fff}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips button{border:1.5px solid var(--line);background:#fff;border-radius:16px;padding:4px 12px;font-family:inherit;cursor:pointer;font-size:.85rem}
+.chips button.on{background:var(--navy);border-color:var(--navy);color:#fff}
+input[type=search]{width:100%;padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:inherit;font-size:.92rem;background:#fff}
+/* ── cards (users and others) ─────────────────────────────────────────── */
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.card-item{background:#fff;border-radius:var(--radius);box-shadow:0 4px 16px rgba(27,51,88,.07);padding:16px;position:relative;
+  border-top:4px solid var(--accent);display:flex;flex-direction:column;gap:8px}
+.card-item.selected{outline:2.5px solid var(--accent)}
+.card-item.inactive{opacity:.6;border-top-color:#9ca3af}
+.card-item .sel{position:absolute;top:12px;left:12px}
+.card-item .who{display:flex;gap:10px;align-items:center}
+.avatar{width:44px;height:44px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;
+  justify-content:center;font-weight:800;font-size:1.05rem;flex:none}
+.card-item .tasks{font-size:.84rem;color:var(--text);border-top:1px solid #eef2f6;padding-top:8px}
+.card-item .tasks b{color:var(--navy)}
+.card-item .actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.card-item .actions form{display:inline}
+/* ── clickable dashboard ──────────────────────────────────────────────── */
+.kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:14px;margin-bottom:22px}
+a.kpi{display:block;background:#fff;border-radius:var(--radius);padding:16px 18px;box-shadow:0 4px 16px rgba(27,51,88,.07);
+  color:var(--text);border-inline-start:5px solid var(--accent);transition:transform .12s,box-shadow .12s}
+a.kpi:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(27,51,88,.13)}
+a.kpi .n{font-size:1.9rem;font-weight:800;color:var(--navy);line-height:1.1}
+a.kpi .l{font-weight:700}a.kpi small{color:var(--muted);display:block}
+a.kpi.ok{border-color:var(--ok)}a.kpi.warn{border-color:var(--warn)}a.kpi.bad{border-color:var(--bad)}
+a.kpi.zero{opacity:.7}
+.btn.ok{background:var(--ok)}
