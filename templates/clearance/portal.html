@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% from 'clearance/_macros.html' import resp_badge, respond_form with context %}
+{% block title %}بوابة الأقسام{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>بوابة الأقسام — التوقيع على براءة الذمة</h1>
+  {% if has_perm('clearance.manage') %}<a class="btn secondary" href="{{ url_for('clearance.portal', all=1) }}">كل الأقسام</a>{% endif %}
+</div>
+<p class="muted">أقسامك: {% for d in departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% else %}لا توجد أقسام مرتبطة بحسابك — اطلب من مدير النظام ربطك بقسمك.{% endfor %}</p>
+
+<h2 style="margin:14px 0 10px">بانتظار ردّك أو معلّقة <span class="count-pill" data-count-for="t-wait">{{ waiting|length }}</span></h2>
+<div class="list-tools"><input type="search" data-list-search="t-wait" placeholder="بحث" aria-label="بحث"></div>
+<div class="card table-wrap"><table data-table id="t-wait">
+<thead><tr><th data-filter="text">الموظف</th><th data-filter="text">الرقم المرجعي</th><th data-filter="select">قسمك</th><th data-sort="date">تاريخ الاستقالة</th><th data-filter="select">الحالة</th><th data-nosort>الرد</th></tr></thead>
+<tbody>{% for r in waiting %}
+<tr><td><a href="{{ url_for('clearance.view', form_id=r.form.id) }}">{{ r.form.employee_name }}</a><br><small class="muted">{{ r.form.department_name or '' }}</small></td>
+<td class="mono">{{ r.form.ref_code }}</td><td>{{ r.department.icon }} {{ r.department.name }}</td>
+<td class="mono">{{ r.form.resign_date or '—' }}</td><td data-value="{{ r.status_label }}">{{ resp_badge(r) }}</td>
+<td>{{ respond_form(r, request.full_path) }}</td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد طلبات بانتظارك 👍</td></tr>{% endfor %}
+</tbody></table></div>
+
+<h2 style="margin:18px 0 10px">وُقّعت (خالية الذمة) — ما زالت مفتوحة</h2>
+<div class="card table-wrap"><table data-table id="t-done">
+<thead><tr><th data-filter="text">الموظف</th><th data-filter="text">الرقم المرجعي</th><th data-filter="select">القسم</th><th>الموقّع</th><th data-sort="date">التاريخ</th><th data-nosort></th></tr></thead>
+<tbody>{% for r in answered %}
+<tr><td>{{ r.form.employee_name }}</td><td class="mono">{{ r.form.ref_code }}</td><td>{{ r.department.name }}</td><td>{{ r.responded_by or '—' }}</td>
+<td class="mono">{{ r.responded_at.strftime('%Y-%m-%d') if r.responded_at else '—' }}</td>
+<td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=r.form.id) }}">فتح / تعديل</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">—</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

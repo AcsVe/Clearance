@@ -30,7 +30,55 @@ def dashboard_sections():
     behind it, already filtered (?f=<column>:<value>)."""
     from models import User, Department, EmailLog, UserRole
     from models.core import utcnow
+    from models import ClearanceForm, ClearanceResponse, Custody, Employee
     out = []
+    user = current_user()
+    if has_perm('clearance.view_all') or has_perm('clearance.manage') or has_perm('clearance.create'):
+        forms = ClearanceForm.query.all()
+        L = lambda f: url_for('clearance.index', f=f)  # noqa: E731
+        out.append(('براءة الذمة', [
+            _kpi('قيد التنفيذ', sum(f.status == 'in_progress' for f in forms), L('الحالة:قيد التنفيذ'),
+                 'بانتظار توقيع الأقسام', 'warn'),
+            _kpi('مكتملة — فيها تعليق', sum(f.status == 'completed' and bool(f.held) for f in forms),
+                 L('معلق لدى:معلق'), 'تحتاج متابعة أو تسوية', 'bad'),
+            _kpi('مكتملة — خالية', sum(f.status == 'completed' and not f.held for f in forms), L('الحالة:مكتمل'),
+                 'جاهزة للطباعة والإقفال', 'ok'),
+            _kpi('مقفلة', sum(f.status == 'closed' for f in forms), L('الحالة:مقفل'), ''),
+            _kpi('تمت تسويتها', sum(f.settled for f in forms), L('الحالة:تمت التسوية'), '', 'ok'),
+            _kpi('ملغاة', sum(f.status == 'cancelled' for f in forms), L('الحالة:ملغي'), ''),
+        ]))
+    if has_perm('clearance.sign') and user.department_ids:
+        n = (ClearanceResponse.query.join(ClearanceForm)
+             .filter(ClearanceResponse.department_id.in_(list(user.department_ids)),
+                     ClearanceResponse.status == 'pending',
+                     ClearanceForm.status.in_(('in_progress', 'completed'))).count())
+        out.append(('قسمي', [_kpi('بانتظار توقيعي', n, url_for('clearance.portal'), 'اضغط للتوقيع', 'warn')]))
+    if has_perm('finance.settle'):
+        pend = [f for f in ClearanceForm.query.filter(ClearanceForm.status.in_(('in_progress', 'completed'))).all()
+                if f.held or f.sent_to_finance_at]
+        out.append(('المحاسبة', [_kpi('بانتظار التسوية', len(pend), url_for('clearance.finance'), '', 'bad')]))
+    if has_perm('custody.view_all') or has_perm('custody.manage_all') or has_perm('custody.manage'):
+        from blueprints.custody import visible_query
+        rows = visible_query(user).all()
+        leaving = {f.employee_id for f in ClearanceForm.query.filter(
+            ClearanceForm.status.in_(('in_progress', 'completed')), ClearanceForm.employee_id.isnot(None)).all()}
+        L = lambda f: url_for('custody.index', f=f)  # noqa: E731
+        out.append(('العهد', [
+            _kpi('عهد مسلّمة', sum(c.status == 'handed' for c in rows), L('الحالة:مسلمة'), '', 'warn'),
+            _kpi('على موظفين في إجراءات براءة الذمة', sum(c.status == 'handed' and c.employee_id in leaving for c in rows),
+                 L('الحالة:مسلمة'), 'يجب استرجاعها قبل التوقيع', 'bad'),
+            _kpi('مسترجعة', sum(c.status == 'returned' for c in rows), L('الحالة:مسترجعة'), '', 'ok'),
+        ]))
+    if has_perm('employees.manage'):
+        emps = Employee.query.all()
+        L = lambda f: url_for('employees.index', f=f)  # noqa: E731
+        out.append(('الموظفون', [
+            _kpi('موظفون فعّالون', sum(e.is_active for e in emps), L('الحالة:فعّال'), '', 'ok'),
+            _kpi('بلا قسم', sum(e.department_id is None for e in emps), L('القسم:—'), '', 'warn'),
+            _kpi('بلا بريد', sum(not e.email for e in emps), L('البريد:—'), 'لن تصلهم الإشعارات', 'warn'),
+            _kpi('بلا حساب دخول', sum(e.user_id is None for e in emps), L('الحساب:بلا حساب'),
+                 'أنشئ حساباتهم من القائمة', ''),
+        ]))
     if has_perm('users.manage'):
         users = User.query.all()
         now = utcnow()

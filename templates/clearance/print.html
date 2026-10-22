@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ 'إثبات تسوية مالية' if f.settled else 'نموذج براءة الذمة' }} — {{ f.ref_code }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+  <script src="{{ url_for('static', filename='js/clearance.js') }}" defer></script>
+</head>
+<body data-autoprint>
+{% set title = 'إثبات تسوية مالية' if f.settled else 'نموذج براءة الذمة' %}
+<div class="header">
+  <div class="logos">
+    {% if current_tenant.logo_primary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">{% endif %}
+    {% if current_tenant.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt="">{% endif %}
+  </div>
+  <h1>{{ title }}</h1>
+  <p>رقم المرجع: <span dir="ltr">{{ f.ref_code }}</span></p>
+</div>
+{% if f.settled %}<div class="status-banner status-settled">✅ تمت التسوية المالية</div>
+{% else %}<div class="status-banner status-other">حالة الطلب: {{ f.status_label }}</div>{% endif %}
+<div class="emp-box">
+  <div><strong>اسم الموظف:</strong> {{ f.employee_name }}</div>
+  <div><strong>رقم الموظف:</strong> {{ f.employee_number or '—' }}</div>
+  <div><strong>القسم:</strong> {{ f.department_name or '—' }}</div>
+  <div><strong>تاريخ الاستقالة:</strong> {{ f.resign_date or '—' }}</div>
+</div>
+{% if f.finance_note %}<div class="note"><strong>ملاحظة التسوية:</strong><br>{{ f.finance_note }}</div>{% endif %}
+<table>
+  <thead><tr><th>القسم</th><th>الحالة</th><th>ملاحظات</th><th>الموقّع والتاريخ</th></tr></thead>
+  <tbody>{% for r in f.responses %}
+  <tr><td><strong>{{ r.department.icon }} {{ r.department.name }}</strong></td>
+  <td class="{{ {'cleared':'cleared','held':'held'}.get(r.status, '') }}">{{ r.status_label }}</td>
+  <td>{{ r.note or '-' }}</td>
+  <td>{{ r.responded_by or '' }}{% if r.responded_at %}<br><small>{{ r.responded_at.strftime('%Y-%m-%d') }}</small>{% endif %}</td></tr>
+  {% endfor %}</tbody>
+</table>
+<div class="signatures"><div class="sig-box">شؤون الموظفين</div><div class="sig-box">المحاسبة</div><div class="sig-box">الموظف</div></div>
+<div class="footer">{{ current_tenant.form_footer or 'نموذج ر ع ع - 1 2026' }}</div>
+<p class="noprint"><button type="button" data-print>🖨 طباعة</button></p>
+</body>
+</html>

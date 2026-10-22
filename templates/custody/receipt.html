@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>إيصال عهدة</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/print.css') }}">
+  <script src="{{ url_for('static', filename='js/clearance.js') }}" defer></script>
+</head>
+<body data-autoprint>
+{% for c in rows %}
+<section class="receipt">
+  <div class="header">
+    <div class="logos">
+      {% if current_tenant.logo_primary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">{% endif %}
+      {% if current_tenant.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt="">{% endif %}
+    </div>
+    <h1>{{ 'إيصال إرجاع عهدة' if c.status == 'returned' else 'إيصال استلام عهدة' }}</h1>
+    <p>رقم العهدة: <span dir="ltr">{{ c.ref_code }}</span></p>
+  </div>
+  <div class="emp-box">
+    <div><strong>العهدة:</strong> {{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}</div>
+    <div><strong>الرقم التسلسلي:</strong> {{ c.serial_no or '—' }}</div>
+    <div><strong>المستلم:</strong> {{ c.recipient_name }}</div>
+    <div><strong>القسم:</strong> {{ c.department.name }}</div>
+    <div><strong>مسلِّم العهدة:</strong> {{ c.handed_by or '—' }}</div>
+    <div><strong>تاريخ التسليم:</strong> {{ c.handed_at or '—' }}</div>
+    {% if c.status == 'returned' %}<div><strong>تاريخ الإرجاع:</strong> {{ c.returned_at }}</div><div><strong>مستلم الإرجاع:</strong> {{ c.returned_to or '—' }}</div>{% endif %}
+  </div>
+  {% if c.notes %}<div class="note"><strong>ملاحظات:</strong> {{ c.notes }}</div>{% endif %}
+  <p>أقرّ أنا الموقّع أدناه بـ{{ 'إرجاع' if c.status == 'returned' else 'استلام' }} العهدة المذكورة أعلاه بحالة سليمة{% if c.status != 'returned' %}، وأتعهد بالمحافظة عليها وإرجاعها عند الطلب أو عند انتهاء العمل{% endif %}.</p>
+  <div class="signatures two">
+    <div class="sig-box">{{ 'المسترجِع' if c.status == 'returned' else 'المستلم' }}: {{ c.recipient_name }}</div>
+    <div class="sig-box">{{ 'مستلم الإرجاع' if c.status == 'returned' else 'مسلِّم العهدة' }}: {{ c.returned_to if c.status == 'returned' else (c.handed_by or '') }}</div>
+  </div>
+  <div class="footer">{{ current_tenant.name_ar }} — {{ current_tenant.form_footer or '' }}</div>
+</section>
+{% endfor %}
+<p class="noprint"><button type="button" data-print>🖨 طباعة</button></p>
+</body>
+</html>

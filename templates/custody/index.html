@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}العهد{% endblock %}
+{% block content %}
+<div class="toolbar"><h1>العهد العينية <span class="count-pill" data-count-for="t-cust">{{ rows|length }}</span></h1></div>
+
+{% if may_add %}
+<div class="grid2">
+<details class="card panel" {% if not rows %}open{% endif %}>
+  <summary>📦 تسليم عهدة</summary>
+  <form method="post" action="{{ url_for('custody.add') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row">
+      <div><label>العهدة *</label><input type="text" name="item" required placeholder="مثل: حاسوب محمول Dell"></div>
+      <div><label>الكمية</label><input type="number" name="quantity" value="1" min="1"></div>
+      <div><label>الرقم التسلسلي</label><input type="text" name="serial_no" dir="ltr"></div>
+    </div>
+    <div class="row">
+      <div><label>المستلم من سجل الموظفين</label><select name="employee_id" data-employee-picker>
+        <option value="">— اختر أو اكتب الاسم —</option>
+        {% for e in employees %}<option value="{{ e.id }}" data-name="{{ e.full_name }}" data-email="{{ e.email or '' }}">{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}</select></div>
+      <div><label>اسم المستلم</label><input type="text" name="recipient_name" data-fill="name"></div>
+      <div><label>بريد المستلم</label><input type="email" name="recipient_email" dir="ltr" data-fill="email"></div>
+    </div>
+    <div class="row">
+      <div><label>القسم المسلِّم *</label><select name="department_id" required>
+        {% for d in departments %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
+      <div><label>مسلِّم العهدة</label><input type="text" name="handed_by" value="{{ current_user.full_name }}"></div>
+      <div><label>تاريخ التسليم</label><input type="date" name="handed_at" value="{{ today }}"></div>
+    </div>
+    <div><label>ملاحظات</label><input type="text" name="notes"></div>
+    <div class="checks" style="margin:8px 0"><label><input type="checkbox" name="notify" value="1" checked> إرسال إشعار للمستلم والقسم</label></div>
+    <button class="btn" type="submit">تسليم</button>
+  </form>
+</details>
+<details class="card panel">
+  <summary>📋 إضافة قائمة أو استيراد ملف</summary>
+  <form method="post" action="{{ url_for('custody.import_list') }}" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <label>الصق القائمة (سطر لكل عهدة، والأعمدة مفصولة بفاصلة أو Tab)</label>
+    <textarea name="text" rows="5" placeholder="{{ field_labels|join('، ') }}"></textarea>
+    <p class="hint">ترتيب الأعمدة: {{ field_labels|join(' ← ') }}. يُطابق المستلم مع سجل الموظفين بالبريد ثم بالاسم. لا تُرسل إشعارات عند الاستيراد.</p>
+    <div class="row">
+      <div><label>أو ملف Excel ‏(.xlsx) أو CSV</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
+      <div><label>القسم لمن لا قسم له</label><select name="department_id"><option value="">—</option>
+        {% for d in departments %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
+    </div>
+    <button class="btn" type="submit">استيراد</button>
+  </form>
+</details>
+</div>
+{% endif %}
+
+<div class="list-tools"><input type="search" data-list-search="t-cust" placeholder="بحث بالعهدة أو المستلم أو القسم" aria-label="بحث"></div>
+<form class="bulk-bar" method="post" action="{{ url_for('custody.bulk') }}" data-bulk-for="t-cust">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="مستلم الإرجاع" style="width:auto;padding:5px 8px">
+  <button class="btn small ok" name="action" value="return" data-confirm="تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟">استرجاع</button>
+  <button class="btn small secondary" name="action" value="handed">إعادة إلى «مسلمة»</button>
+  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print">🖨 طباعة الإيصالات</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من سجلات العهد نهائيًا؟">حذف</button>
+</form>
+<div class="card table-wrap"><table data-table id="t-cust">
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
+<th data-filter="text">الرقم</th><th data-filter="text">العهدة</th><th data-sort="num">الكمية</th><th data-filter="text">المستلم</th><th data-filter="select">القسم</th>
+<th data-filter="select">مسلّم العهدة</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
+<tbody>{% for c in rows %}
+<tr data-id="{{ c.id }}"><td class="sel">{% if can_manage(c) %}<input type="checkbox" data-row-select value="{{ c.id }}" aria-label="تحديد {{ c.item }}">{% endif %}</td>
+<td class="mono">{{ c.ref_code }}</td><td>{{ c.item }}{% if c.serial_no %}<br><small class="mono muted">{{ c.serial_no }}</small>{% endif %}</td><td>{{ c.quantity }}</td>
+<td>{{ c.recipient_name }}{% if not c.employee_id %} <span class="badge warn" title="غير مرتبط بسجل الموظفين">؟</span>{% endif %}</td>
+<td>{{ c.department.name }}</td><td>{{ c.handed_by or '—' }}</td>
+<td class="mono">{{ c.handed_at or '—' }}</td>
+<td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
+<td class="mono">{{ c.returned_at or '—' }}{% if c.returned_to %}<br><small>{{ c.returned_to }}</small>{% endif %}</td>
+<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('custody.edit', cid=c.id) }}">تفاصيل</a>
+  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال">🖨</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد عهد مسجّلة.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

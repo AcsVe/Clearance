@@ -51,6 +51,13 @@ def create_app(overrides=None):
     app.register_blueprint(main_bp)
     app.register_blueprint(admin_bp, url_prefix='/admin')
     app.register_blueprint(super_bp, url_prefix='/super')
+    from blueprints.employees import employees_bp
+    from blueprints.clearance import clearance_bp
+    from blueprints.custody import custody_bp
+    app.register_blueprint(employees_bp, url_prefix='/employees')
+    app.register_blueprint(clearance_bp)
+    app.register_blueprint(custody_bp)
+    import jobs  # noqa: F401  (registers the scheduled reminders)
 
     from cli import register_cli
     register_cli(app)

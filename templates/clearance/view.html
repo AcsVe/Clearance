@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+{% from 'clearance/_macros.html' import form_badge, resp_badge, progress, respond_form with context %}
+{% block title %}{{ f.ref_code }}{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>براءة ذمة: {{ f.employee_name }} <span class="mono muted" style="font-size:1rem">{{ f.ref_code }}</span></h1>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a class="btn secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">🖨 طباعة</a>
+    {% if has_perm('clearance.view_all') or has_perm('clearance.manage') %}<a class="btn secondary" href="{{ url_for('clearance.index') }}">كل النماذج</a>{% endif %}
+  </div>
+</div>
+
+<div class="card info-grid">
+  <div><small>الحالة</small>{{ form_badge(f) }}</div>
+  <div><small>الإنجاز</small>{{ progress(f) }}</div>
+  <div><small>الرقم الوظيفي</small><b class="mono">{{ f.employee_number or '—' }}</b></div>
+  <div><small>القسم</small><b>{{ f.department_name or '—' }}</b></div>
+  <div><small>المسمى الوظيفي</small><b>{{ f.job_title or '—' }}</b></div>
+  <div><small>تاريخ الاستقالة</small><b class="mono">{{ f.resign_date or '—' }}</b></div>
+  <div><small>البريد</small><b class="mono">{{ f.employee_email or '—' }}</b></div>
+  <div><small>أنشأه</small><b>{{ f.created_by or '—' }}</b> <small class="mono">{{ f.created_at.strftime('%Y-%m-%d') }}</small></div>
+</div>
+{% if f.hr_note %}<div class="alert warning"><b>ملاحظة شؤون الموظفين إلى المحاسبة:</b> {{ f.hr_note }}</div>{% endif %}
+{% if f.settled %}<div class="alert success"><b>تسوية المحاسبة</b> ({{ f.settled_by }} — {{ f.settled_at.strftime('%Y-%m-%d') }}){% if f.finance_note %}: {{ f.finance_note }}{% endif %}</div>{% endif %}
+
+<h2 style="margin:16px 0 10px">ردود الأقسام</h2>
+<div class="card table-wrap"><table data-table id="t-resp">
+<thead><tr><th data-filter="text">القسم</th><th data-filter="select">الحالة</th><th data-filter="text">الملاحظات</th><th>الموقّع</th><th data-sort="date">التاريخ</th><th data-nosort>التوقيع</th></tr></thead>
+<tbody>{% for r in f.responses %}
+<tr><td>{{ r.department.icon }} {{ r.department.name }}</td><td data-value="{{ r.status_label }}">{{ resp_badge(r) }}</td>
+<td>{{ r.note or '—' }}</td><td>{{ r.responded_by or '—' }}</td>
+<td class="mono">{{ r.responded_at.strftime('%Y-%m-%d %H:%M') if r.responded_at else '—' }}</td>
+<td>{% if may_sign[r.id] and f.status in ('in_progress', 'completed') %}{{ respond_form(r, request.path) }}{% endif %}</td></tr>
+{% endfor %}</tbody></table></div>
+
+{% if custody %}
+<h2 style="margin:16px 0 10px">عهد الموظف</h2>
+<div class="card table-wrap"><table data-table id="t-fcust">
+<thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th>تاريخ التسليم</th><th data-filter="select">الحالة</th></tr></thead>
+<tbody>{% for c in custody %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}</td><td>{{ c.department.name }}</td>
+<td class="mono">{{ c.handed_at or '—' }}</td><td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+
+{% if has_perm('clearance.manage') %}
+<h2 style="margin:16px 0 10px">إجراءات شؤون الموظفين</h2>
+<div class="card actions-row">
+  {% if f.status in ('in_progress', 'completed') %}
+  <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn secondary" name="action" value="remind" {% if not f.pending %}disabled{% endif %}>🔔 تذكير الأقسام المتأخرة ({{ f.pending|length }})</button></form>
+  <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}" class="inline-note"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="text" name="note" placeholder="ملاحظة إلى المحاسبة (مثل: خصم قيمة العهدة)" value="{{ f.hr_note or '' }}">
+    <button class="btn secondary" name="action" value="to_finance">💼 إرسال إلى المحاسبة</button></form>
+  <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn secondary" name="action" value="closed" data-confirm="إقفال النموذج؟ لن تتمكن الأقسام من التعديل بعده.">🔒 إقفال</button>
+    <button class="btn danger" name="action" value="cancelled" data-confirm="إلغاء هذا النموذج؟">✕ إلغاء</button></form>
+  {% elif not f.settled %}
+  <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button class="btn secondary" name="action" value="reopen" data-confirm="إعادة فتح النموذج؟">↩ إعادة فتح</button></form>
+  {% endif %}
+</div>
+{% endif %}
+{% endblock %}

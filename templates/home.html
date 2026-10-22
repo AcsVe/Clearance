@@ -17,6 +17,22 @@
 
 <h2 style="margin:6px 0 10px">الوصول السريع</h2>
 <div class="grid">
+  {% if has_perm('clearance.create') %}
+  <a class="tile" href="{{ url_for('clearance.new') }}"><span class="ic">📝</span><b>نموذج براءة ذمة جديد</b><small>يُرسل إلى الأقسام للتوقيع</small></a>
+  {% endif %}
+  {% if has_perm('clearance.sign') %}
+  <a class="tile" href="{{ url_for('clearance.portal') }}"><span class="ic">✍️</span><b>بوابة الأقسام</b><small>توقيع براءة الذمة لقسمك</small></a>
+  {% endif %}
+  {% if has_perm('finance.settle') %}
+  <a class="tile" href="{{ url_for('clearance.finance') }}"><span class="ic">💼</span><b>بوابة المحاسبة</b><small>تسوية النماذج المعلقة</small></a>
+  {% endif %}
+  {% if has_perm('custody.manage') or has_perm('custody.manage_all') or has_perm('custody.view_all') %}
+  <a class="tile" href="{{ url_for('custody.index') }}"><span class="ic">📦</span><b>العهد العينية</b><small>تسليم واسترجاع وطباعة الإيصالات</small></a>
+  {% endif %}
+  {% if has_perm('employees.manage') %}
+  <a class="tile" href="{{ url_for('employees.index') }}"><span class="ic">🧑‍💼</span><b>سجل الموظفين</b><small>إضافة واستيراد وتعديل</small></a>
+  {% endif %}
+  <a class="tile" href="{{ url_for('custody.mine') }}"><span class="ic">🎒</span><b>عهدي</b><small>ما سُلّم إليك ونماذجك</small></a>
   {% if has_perm('users.manage') %}
   <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والمهام وربط الأقسام</small></a>
   {% endif %}

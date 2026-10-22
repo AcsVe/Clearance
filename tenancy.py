@@ -123,3 +123,15 @@ def _guard_writes(session, flush_context, instances):
         original = hist.deleted[0] if hist.deleted else obj.tenant_id
         if original != tid or obj.tenant_id != tid:
             raise TenantContextError('تعديل أو حذف سجل منظمة أخرى')
+
+
+def get_scoped(model, ident):
+    """``db.session.get`` that never returns another organization's row. A plain ``session.get`` answers from
+    the identity map without a query, so the tenant filter above would not run for an object that is
+    already loaded in this session."""
+    from extensions import db
+    obj = db.session.get(model, ident)
+    if obj is not None and isinstance(obj, TenantScoped) and not _bypass.get() \
+            and obj.tenant_id != _current_tenant.get():
+        return None
+    return obj

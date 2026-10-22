@@ -1,0 +1,37 @@
+{% extends 'base.html' %}
+{% block title %}نموذج براءة ذمة جديد{% endblock %}
+{% block content %}
+<h1>نموذج براءة ذمة جديد</h1>
+{% for e in errors %}<div class="alert danger">{{ e }}</div>{% endfor %}
+<form method="post" class="card" id="new-clearance">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="row">
+    <div><label>الموظف من السجل</label>
+      <select name="employee_id" data-employee-picker>
+        <option value="">— اختر أو اكتب البيانات يدويًا —</option>
+        {% for e in employees %}<option value="{{ e.id }}" {% if v.employee_id == e.id|string %}selected{% endif %}
+          data-name="{{ e.full_name }}" data-number="{{ e.employee_number or '' }}" data-email="{{ e.email or '' }}"
+          data-dept="{{ e.department.name if e.department else '' }}" data-job="{{ e.job_title or '' }}">{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}
+      </select>
+      <p class="hint">غير موجود؟ <a href="{{ url_for('employees.index') }}">أضفه إلى سجل الموظفين</a> أو اكتب بياناته هنا.</p></div>
+    <div><label>اسم الموظف *</label><input type="text" name="employee_name" value="{{ v.employee_name or '' }}"></div>
+    <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" value="{{ v.employee_number or '' }}" dir="ltr"></div>
+  </div>
+  <div class="row">
+    <div><label>البريد الإلكتروني للموظف</label><input type="email" name="employee_email" value="{{ v.employee_email or '' }}" dir="ltr"></div>
+    <div><label>قسم الموظف</label><input type="text" name="department_name" value="{{ v.department_name or '' }}"></div>
+    <div><label>المسمى الوظيفي</label><input type="text" name="job_title" value="{{ v.job_title or '' }}"></div>
+    <div><label>تاريخ الاستقالة</label><input type="date" name="resign_date" value="{{ v.resign_date or '' }}"></div>
+  </div>
+  <label>الأقسام المطلوب توقيعها</label>
+  <div class="checks dept-checks">
+    {% for d in departments %}<label><input type="checkbox" name="departments" value="{{ d.id }}"
+      {% if not v or d.id|string in request.form.getlist('departments') or request.method == 'GET' %}checked{% endif %}>
+      {{ d.icon }} {{ d.name }}{% if d.dept_type != 'normal' %} <span class="badge">{{ 'شؤون الموظفين' if d.dept_type == 'HR' else 'المحاسبة' }}</span>{% elif not d.emails %} <span class="badge warn">بلا بريد</span>{% endif %}</label>{% endfor %}
+  </div>
+  <p class="hint">يصل كل قسم عادي بريدٌ برابط التوقيع الخاص به. قسما شؤون الموظفين والمحاسبة يوقّعان من داخل النظام.</p>
+  {% if v.dup_warning %}<div class="checks"><label><input type="checkbox" name="allow_duplicate" value="1"> إنشاء نموذج آخر رغم وجود نموذج مفتوح لهذا الموظف</label></div>{% endif %}
+  <button class="btn" type="submit">إنشاء النموذج وإرسال الإشعارات</button>
+  <a class="btn secondary" href="{{ url_for('clearance.index') }}">إلغاء</a>
+</form>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+{% block title %}عهدي{% endblock %}
+{% block content %}
+<h1>عهدي ونماذجي</h1>
+<div class="card table-wrap"><table data-table id="t-mine">
+<thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
+<tbody>{% for c in rows %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}</td><td>{{ c.department.name }}</td>
+<td class="mono">{{ c.handed_at or '—' }}</td><td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
+<td class="mono">{{ c.returned_at or '—' }}</td><td><a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener">🖨</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد عهد مسجّلة باسمك.</td></tr>{% endfor %}</tbody></table></div>
+{% if forms %}
+<h2 style="margin:16px 0 10px">نماذج براءة الذمة</h2>
+<div class="card table-wrap"><table><thead><tr><th>الرقم المرجعي</th><th>التاريخ</th><th>الحالة</th></tr></thead>
+<tbody>{% for f in forms %}<tr><td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td><td class="mono">{{ f.created_at.strftime('%Y-%m-%d') }}</td><td>{{ f.status_label }}</td></tr>{% endfor %}</tbody></table></div>
+{% endif %}
+{% endblock %}

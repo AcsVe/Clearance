@@ -10,6 +10,7 @@ from sqlalchemy import func
 
 from authz import permission_required, PERMISSIONS
 from extensions import db
+from tenancy import get_scoped
 from models import (User, Role, RolePermission, UserRole, Department, UserDepartment, AuditLog,
                     EmailLog)
 from models.core import utcnow, DEPARTMENT_TYPES
@@ -23,7 +24,7 @@ PAGE_SIZE = 50
 
 
 def _get_or_404(model, obj_id):
-    obj = db.session.get(model, obj_id)   # tenant filter applies → other tenants' ids are 404
+    obj = get_scoped(model, obj_id)   # tenant filter applies → other tenants' ids are 404
     if obj is None:
         abort(404)
     return obj

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% from 'clearance/_macros.html' import form_badge, progress with context %}
+{% block title %}نماذج براءة الذمة{% endblock %}
+{% block content %}
+<div class="toolbar">
+  <h1>نماذج براءة الذمة <span class="count-pill" data-count-for="t-forms">{{ forms|length }}</span></h1>
+  {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new') }}">+ نموذج جديد</a>{% endif %}
+</div>
+<div class="list-tools"><input type="search" data-list-search="t-forms" placeholder="بحث بالاسم أو الرقم المرجعي أو القسم" aria-label="بحث"></div>
+{% if has_perm('clearance.manage') %}
+<form class="bulk-bar" method="post" action="{{ url_for('clearance.bulk') }}" data-bulk-for="t-forms">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <span>المحدد: <b data-selected-count>0</b></span>
+  <button class="btn small secondary" name="action" value="remind">إرسال تذكير</button>
+  <button class="btn small secondary" name="action" value="closed" data-confirm="إقفال {n} من النماذج؟ لن تتمكن الأقسام من التعديل بعدها.">إقفال</button>
+  <button class="btn small secondary" name="action" value="cancelled" data-confirm="إلغاء {n} من النماذج؟">إلغاء</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من النماذج نهائيًا؟ يُحذف فقط الملغي أو ما لم يوقّعه أي قسم.">حذف</button>
+</form>
+{% endif %}
+<div class="card table-wrap"><table data-table id="t-forms">
+<thead><tr>{% if has_perm('clearance.manage') %}<th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>{% endif %}
+<th data-filter="text">الرقم المرجعي</th><th data-filter="text">الموظف</th><th data-filter="text">الرقم الوظيفي</th><th data-filter="select">القسم</th>
+<th data-sort="date">تاريخ الاستقالة</th><th data-sort="date">تاريخ الإنشاء</th><th data-filter="select">الحالة</th><th data-sort="num">الإنجاز</th><th data-filter="select">معلق لدى</th><th data-nosort></th></tr></thead>
+<tbody>
+{% for f in forms %}
+<tr data-id="{{ f.id }}">{% if has_perm('clearance.manage') %}<td class="sel"><input type="checkbox" data-row-select value="{{ f.id }}" aria-label="تحديد {{ f.ref_code }}"></td>{% endif %}
+<td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td>
+<td>{{ f.employee_name }}</td><td class="mono">{{ f.employee_number or '—' }}</td><td>{{ f.department_name or '—' }}</td>
+<td class="mono">{{ f.resign_date or '—' }}</td><td class="mono" data-value="{{ f.created_at.isoformat() }}">{{ f.created_at.strftime('%Y-%m-%d') }}</td>
+<td data-value="{{ 'تمت التسوية' if f.settled else f.status_label }}">{{ form_badge(f) }}</td>
+<td data-value="{{ f.responses|length - f.pending|length }}">{{ progress(f) }}</td>
+<td data-value="{{ 'معلق' if f.held else ('بانتظار التوقيع' if f.pending else '—') }}">{% for r in f.held %}<span class="badge bad">{{ r.department.name }}</span> {% else %}—{% endfor %}</td>
+<td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=f.id) }}">فتح</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد نماذج بعد.</td></tr>{% endfor %}
+</tbody></table></div>
+{% endblock %}

@@ -1,0 +1,25 @@
+{% macro form_badge(f) -%}
+{% set tone = {'in_progress':'warn','completed':'ok','closed':'','cancelled':'bad'}[f.status] %}
+<span class="badge {{ tone }}">{{ f.status_label }}</span>{% if f.settled %} <span class="badge ok">تمت التسوية</span>{% endif %}
+{%- endmacro %}
+{% macro resp_badge(r) -%}
+<span class="badge {{ {'pending':'warn','cleared':'ok','held':'bad'}[r.status] }}">{{ r.status_label }}</span>
+{%- endmacro %}
+{% macro progress(f) -%}
+{% set total = f.responses|length %}{% set done = total - f.pending|length %}
+<div class="progress" title="{{ done }} من {{ total }}"><span style="width:{{ (100 * done / total)|round|int if total else 0 }}%"></span></div>
+<small class="muted">{{ done }} / {{ total }}</small>
+{%- endmacro %}
+{% macro respond_form(r, next_url, show_name=True) -%}
+<form method="post" action="{{ url_for('clearance.respond', resp_id=r.id) }}" class="respond">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="next" value="{{ next_url }}">
+  <div class="choice">
+    <label><input type="radio" name="status" value="cleared" {% if r.status != 'held' %}checked{% endif %}> ✅ خالية الذمة</label>
+    <label><input type="radio" name="status" value="held" {% if r.status == 'held' %}checked{% endif %}> ⛔ معلق</label>
+  </div>
+  <input type="text" name="note" value="{{ r.note or '' }}" placeholder="ملاحظات (إلزامية عند التعليق: ما المطلوب من الموظف)">
+  {% if show_name %}<input type="text" name="by_name" value="{{ current_user.full_name }}" aria-label="اسم الموقّع">{% endif %}
+  <button class="btn small" type="submit">حفظ</button>
+</form>
+{%- endmacro %}
