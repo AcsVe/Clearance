@@ -23,4 +23,13 @@
   </div>
   <button class="btn" type="submit">حفظ</button>
 </form></div>
+
+<h2 style="margin:18px 0 10px">استيراد من Google Sheet القديم</h2>
+<div class="card"><form method="post" action="{{ url_for('admin.import_sheet') }}" enctype="multipart/form-data">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <p class="hint">في Google Sheets: ملف ← تنزيل ← Microsoft Excel ‏(.xlsx)، ثم ارفع الملف هنا. تُستورد أوراق «الاقسام» و«النماذج» و«الردود» و«العهد»،
+  ويُضاف موظفو النماذج إلى سجل الموظفين (موقوفين). إعادة الاستيراد لا تكرر ما استُورد، ولا تُرسل أي رسائل بريد.</p>
+  <div class="row"><div><input type="file" name="file" accept=".xlsx" required></div></div>
+  <button class="btn" type="submit" data-confirm="استيراد بيانات الملف إلى هذه المنظمة؟">استيراد</button>
+</form></div>
 {% endblock %}

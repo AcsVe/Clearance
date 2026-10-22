@@ -560,3 +560,27 @@ def settings():
             flash('تم حفظ الإعدادات', 'success')
             return redirect(url_for('admin.settings'))
     return render_template('admin/settings.html', t=t, errors=errors), (400 if errors else 200)
+
+
+@admin_bp.route('/settings/import-sheet', methods=['POST'])
+@permission_required('settings.manage')
+def import_sheet():
+    fs = request.files.get('file')
+    if not fs or not fs.filename.lower().endswith('.xlsx'):
+        flash('اختر ملف Excel ‏(.xlsx) المنزَّل من Google Sheets', 'danger')
+        return redirect(url_for('admin.settings'))
+    from services.sheets_import import import_workbook
+    try:
+        rep = import_workbook(fs.read())
+    except Exception as exc:  # noqa: BLE001 — a damaged or unrelated file
+        db.session.rollback()
+        current_app.logger.exception('sheet import failed')
+        flash(f'تعذّر الاستيراد: {exc}', 'danger')
+        return redirect(url_for('admin.settings'))
+    audit('sheet.imported', **{k: v for k, v in rep.items() if k != 'problems'})
+    db.session.commit()
+    flash(f'أقسام: {rep["departments"]}، نماذج: {rep["forms"]}، ردود: {rep["responses"]}، موظفون: {rep["employees"]}، '
+          f'عهد: {rep["custody"]}، تُرك (موجود مسبقًا): {rep["skipped"]}', 'success')
+    for p in rep['problems'][:15]:
+        flash(p, 'warning')
+    return redirect(url_for('admin.settings'))

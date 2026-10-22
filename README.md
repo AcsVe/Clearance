@@ -1,18 +1,22 @@
-# نظام براءة الذمة والعهد العينية
+# نظام براءة الذمة والعهد العينية — `6.iajaward.org`
 
-تطبيق Flask مستقل يحل محل سكربت Google Apps Script، بنفس معمارية نظام حجز القاعات (venues):
-Flask + SQLAlchemy + Jinja (RTL) + PostgreSQL، وwaitress محليًا على Windows خلف Caddy.
+تطبيق Flask مستقل يحل محل سكربت Google Apps Script، ويعمل مثل بقية أنظمة iajaward.org: على كمبيوتر المدرسة
+(`C:\Clearance`، المنفذ `8006`، SQLite) خلف نفق Cloudflare، مع نسخ احتياطي كل ساعة إلى Google Drive وهاتف احتياطي.
 
-## حالة المراحل
+**الدليل الكامل (التثبيت، الأدوار، سير العمل، الاستيراد): [`docs/Clearance.md`](docs/Clearance.md)**
 
-| المرحلة | الحالة |
+## ما يحتويه
+
+| الوحدة | الحالة |
 |---|---|
-| 1. الأساس: المنظمات، الدخول، الأدوار والصلاحيات، الأقسام، التدقيق | ✅ مكتملة ومختبرة |
-| 2. براءة الذمة | ⏳ |
-| 3. العهد العينية + الاستيراد من Google Sheets | ⏳ |
-| 4. OCR للعهد الورقية (محلي) | ⏳ |
-| 5. الإشعارات والتذكيرات | ⏳ |
-| 6. حزمة النشر المحلي | ⏳ بانتظار حزمة venues_local_server |
+| المنظمات، الدخول، الأدوار والصلاحيات، الأقسام، التدقيق، سجل البريد | ✅ |
+| القوائم: رؤوس ثابتة، تصفية لكل عمود، ترتيب، تحديد وإجراءات جماعية؛ لوحة رئيسية بأرقام قابلة للضغط؛ المستخدمون كبطاقات مهام | ✅ |
+| سجل الموظفين: إضافة، لصق قائمة، استيراد Excel/CSV، إنشاء حسابات دخول | ✅ |
+| براءة الذمة: روابط توقيع للأقسام، بوابة الأقسام، إجراءات شؤون الموظفين، بوابة المحاسبة، الطباعة، تذكير تلقائي | ✅ |
+| العهد العينية: تسليم، استرجاع، إيصالات، استيراد، «عهدي» | ✅ |
+| استيراد Google Sheet القديم (الأقسام، النماذج، الردود، العهد) | ✅ |
+| بيئة التشغيل: ملفات bat، النفق، النسخ الاحتياطي، الهاتف الاحتياطي | ✅ |
+| قراءة العهد الورقية آلياً (OCR) | ⏳ لاحقاً |
 
 ## الأمان (ما تغيّر عن السكربت)
 
@@ -36,17 +40,13 @@ Flask + SQLAlchemy + Jinja (RTL) + PostgreSQL، وwaitress محليًا على W
 pip install -r requirements-dev.txt
 cp config.env.example config.env    # واملأ القيم
 flask --app app:create_app db upgrade
-flask --app app:create_app create-superadmin root   # يسأل عن كلمة المرور بشكل مخفي
-python run_server.py
+python ops/first_org.py             # المدير العام + أول منظمة ومديرها
+python serve.py
 ```
-
-ثم: `/super/login` لإنشاء المنظمة ومديرها الأول، و`/login` لدخول مستخدمي المنظمة.
 
 ## الاختبارات
 
-تعمل على PostgreSQL حقيقي:
-
 ```bash
-export TEST_DATABASE_URL=postgresql://postgres@localhost:5432/clearance_test
-python -m pytest -q
+python -m pytest -q                 # SQLite مؤقت
+TEST_DATABASE_URL=postgresql://... python -m pytest -q   # أو PostgreSQL
 ```
