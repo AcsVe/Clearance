@@ -8,3 +8,12 @@ dist/
 *.spec.bak
 .pytest_cache/
 .venv/
+data/
+logs/
+backups/
+venv/
+pyexe.txt
+.secret_key
+*.db-wal
+*.db-shm
+*.pem

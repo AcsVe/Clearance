@@ -1,17 +1,16 @@
-"""Tests run against a real PostgreSQL database.
-
-Set TEST_DATABASE_URL (default: local socket on port 5433, db clearance_test).
-The schema is built by running the Alembic migrations, so the migrations
-themselves are tested too. Every table is truncated between tests.
+"""Tests run on SQLite (the production database on the school PC) by default, or on PostgreSQL when
+TEST_DATABASE_URL points to one. The schema is built by running the Alembic migrations, so the migrations
+themselves are tested too. Every table is emptied between tests.
 """
 import os
 import re
+import tempfile
 
 import pytest
 from sqlalchemy import text
 
-os.environ.setdefault('TEST_DATABASE_URL',
-                      'postgresql://postgres@localhost:5433/clearance_test?host=/tmp')
+_TMP = tempfile.mkdtemp(prefix='clr-test-')
+os.environ.setdefault('TEST_DATABASE_URL', 'sqlite:///' + os.path.join(_TMP, 'test.db').replace('\\', '/'))
 os.environ['DATABASE_URL'] = os.environ['TEST_DATABASE_URL']
 os.environ['DISABLE_REMINDERS'] = '1'
 os.environ['BASE_URL'] = 'https://clr.test'
@@ -30,8 +29,9 @@ def app():
                       'SECRET_KEY': 'test-secret', 'BASE_URL': 'https://clr.test',
                       'SESSION_COOKIE_SECURE': False})
     with app.app_context():
-        db.session.execute(text('DROP SCHEMA public CASCADE; CREATE SCHEMA public;'))
-        db.session.commit()
+        if db.engine.dialect.name == 'postgresql':
+            db.session.execute(text('DROP SCHEMA public CASCADE; CREATE SCHEMA public;'))
+            db.session.commit()
         from flask_migrate import upgrade
         upgrade(directory=os.path.join(os.path.dirname(os.path.dirname(__file__)), 'migrations'))
     yield app
@@ -41,8 +41,16 @@ def app():
 def clean_db(app):
     with app.app_context():
         tables = [t.name for t in db.metadata.sorted_tables]
-        db.session.execute(text('TRUNCATE ' + ', '.join(f'"{t}"' for t in tables)
-                                + ' RESTART IDENTITY CASCADE'))
+        if db.engine.dialect.name == 'postgresql':
+            db.session.execute(text('TRUNCATE ' + ', '.join(f'"{t}"' for t in tables)
+                                    + ' RESTART IDENTITY CASCADE'))
+        else:
+            for t in reversed(tables):
+                db.session.execute(text(f'DELETE FROM "{t}"'))
+            try:
+                db.session.execute(text('DELETE FROM sqlite_sequence'))
+            except Exception:   # noqa: BLE001 — no AUTOINCREMENT table yet
+                pass
         db.session.commit()
     app.config['MAIL_OUTBOX'] = []
     app.config['WTF_CSRF_ENABLED'] = False

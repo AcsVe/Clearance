@@ -27,6 +27,17 @@ def create_app(overrides=None):
         pass
 
     db.init_app(app)
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
+        from sqlalchemy import event
+
+        with app.app_context():
+            @event.listens_for(db.engine, 'connect')
+            def _sqlite_pragmas(conn, _rec):
+                cur = conn.cursor()
+                cur.execute('PRAGMA foreign_keys=ON')        # ON DELETE CASCADE / SET NULL like PostgreSQL
+                cur.execute('PRAGMA journal_mode=WAL')       # readers never block the writer
+                cur.execute('PRAGMA busy_timeout=10000')
+                cur.close()
     csrf.init_app(app)
     migrate.init_app(app, db, directory=str(program_dir() / 'migrations'))
 
@@ -128,6 +139,10 @@ def _register_request_hooks(app):
 
 
 def _register_pwa_routes(app):
+    @app.route('/healthz')
+    def healthz():
+        return 'ok', 200, {'Content-Type': 'text/plain', 'Cache-Control': 'no-store'}
+
     @app.route('/sw.js')
     def service_worker():
         resp = make_response(send_from_directory(app.static_folder, 'sw.js'))
