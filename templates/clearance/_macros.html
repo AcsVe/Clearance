@@ -15,8 +15,8 @@
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <input type="hidden" name="next" value="{{ next_url }}">
   <div class="choice">
-    <label><input type="radio" name="status" value="cleared" {% if r.status != 'held' %}checked{% endif %}> ✅ خالية الذمة</label>
-    <label><input type="radio" name="status" value="held" {% if r.status == 'held' %}checked{% endif %}> ⛔ معلق</label>
+    <label><input type="radio" name="status" value="cleared" {% if r.status != 'held' %}checked{% endif %}> <i class="fa-solid fa-circle-check" style="color:var(--ok)" aria-hidden="true"></i> خالية الذمة</label>
+    <label><input type="radio" name="status" value="held" {% if r.status == 'held' %}checked{% endif %}> <i class="fa-solid fa-circle-xmark" style="color:var(--bad)" aria-hidden="true"></i> معلق</label>
   </div>
   <input type="text" name="note" value="{{ r.note or '' }}" placeholder="ملاحظات (إلزامية عند التعليق: ما المطلوب من الموظف)">
   {% if show_name %}<input type="text" name="by_name" value="{{ current_user.full_name }}" aria-label="اسم الموقّع">{% endif %}

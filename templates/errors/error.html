@@ -1,7 +1,7 @@
-<!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>{% include '_head.html' %}<title>{{ code }}</title></head>
-<body><div class="auth-wrap"><div class="auth-card">
-<h1>{{ code }}</h1><p class="sub">{{ message }}</p>
-<a class="btn" href="{{ url_for('main.index') }}">العودة للرئيسية</a>
-</div></div></body></html>
+{% extends 'auth/_layout.html' %}
+{% block title %}{{ code }}{% endblock %}
+{% block heading_wrap %}<h1 class="err-code">{{ code }}</h1>{% endblock %}
+{% block body %}
+<p class="sub">{{ message }}</p>
+<div class="err-actions"><a class="btn" href="{{ url_for('main.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> العودة للرئيسية</a></div>
+{% endblock %}

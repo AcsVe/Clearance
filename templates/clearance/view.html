@@ -5,7 +5,7 @@
 <div class="toolbar">
   <h1>براءة ذمة: {{ f.employee_name }} <span class="mono muted" style="font-size:1rem">{{ f.ref_code }}</span></h1>
   <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <a class="btn secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">🖨 طباعة</a>
+    <a class="btn secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener"><i class="fa-solid fa-print" aria-hidden="true"></i> طباعة</a>
     {% if has_perm('clearance.view_all') or has_perm('clearance.manage') %}<a class="btn secondary" href="{{ url_for('clearance.index') }}">كل النماذج</a>{% endif %}
   </div>
 </div>
@@ -46,13 +46,13 @@
 <div class="card actions-row">
   {% if f.status in ('in_progress', 'completed') %}
   <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="btn secondary" name="action" value="remind" {% if not f.pending %}disabled{% endif %}>🔔 تذكير الأقسام المتأخرة ({{ f.pending|length }})</button></form>
+    <button class="btn secondary" name="action" value="remind" {% if not f.pending %}disabled{% endif %}><i class="fa-solid fa-bell" aria-hidden="true"></i> تذكير الأقسام المتأخرة ({{ f.pending|length }})</button></form>
   <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}" class="inline-note"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <input type="text" name="note" placeholder="ملاحظة إلى المحاسبة (مثل: خصم قيمة العهدة)" value="{{ f.hr_note or '' }}">
-    <button class="btn secondary" name="action" value="to_finance">💼 إرسال إلى المحاسبة</button></form>
+    <button class="btn secondary" name="action" value="to_finance"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i> إرسال إلى المحاسبة</button></form>
   <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="btn secondary" name="action" value="closed" data-confirm="إقفال النموذج؟ لن تتمكن الأقسام من التعديل بعده.">🔒 إقفال</button>
-    <button class="btn danger" name="action" value="cancelled" data-confirm="إلغاء هذا النموذج؟">✕ إلغاء</button></form>
+    <button class="btn secondary" name="action" value="closed" data-confirm="إقفال النموذج؟ لن تتمكن الأقسام من التعديل بعده."><i class="fa-solid fa-lock" aria-hidden="true"></i> إقفال</button>
+    <button class="btn danger" name="action" value="cancelled" data-confirm="إلغاء هذا النموذج؟"><i class="fa-solid fa-xmark" aria-hidden="true"></i> إلغاء</button></form>
   {% elif not f.settled %}
   <form method="post" action="{{ url_for('clearance.action', form_id=f.id) }}"><input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button class="btn secondary" name="action" value="reopen" data-confirm="إعادة فتح النموذج؟">↩ إعادة فتح</button></form>

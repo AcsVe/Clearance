@@ -2,34 +2,52 @@
 {% block title %}الإعدادات{% endblock %}
 {% block content %}
 <h1>إعدادات المنظمة</h1>
-<div class="card"><form method="post" enctype="multipart/form-data">
+<form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <div class="card"><h2><i class="fa-solid fa-building" aria-hidden="true"></i> الهوية</h2>
   <div class="row">
-    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required></div>
+    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required>
+      <p class="hint">الاسم الطويل يظهر تحت الشعار على عدة أسطر.</p></div>
     <div><label>الاسم بالإنجليزية</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>اللون الأساسي</label><input type="text" name="accent_color" value="{{ t.accent_color }}" dir="ltr"></div>
+    <div><label>اللون الأساسي</label><input type="color" name="accent_color" value="{{ t.accent_color }}">
+      <p class="hint">الافتراضي: <span class="mono">#0C67EC</span></p></div>
   </div>
+  <div class="row">
+    {% for which, text in (('primary', 'الشعار الأول'), ('secondary', 'الشعار الثاني')) %}
+    <div><label>{{ text }}</label>
+      <div class="logo-pick">
+        {% if t['logo_' ~ which] %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which=which) }}" alt="">
+        {% elif which == 'primary' %}<img src="{{ url_for('static', filename='brand/system.svg') }}" alt="">{% else %}<span class="logo-empty"><i class="fa-regular fa-image" aria-hidden="true"></i></span>{% endif %}
+        <div><input type="file" name="logo_{{ which }}" accept="image/png,image/jpeg,image/webp">
+        {% if t['logo_' ~ which] %}<label class="checks"><input type="checkbox" name="remove_logo_{{ which }}" value="1"> إزالة الشعار</label>{% endif %}</div>
+      </div>
+      <p class="hint">{% if which == 'primary' %}إلى أن يُرفع شعار تظهر أيقونة النظام.{% else %}يظهر في صفحة الدخول وفي النماذج والإيصالات المطبوعة.{% endif %}</p></div>
+    {% endfor %}
+  </div></div>
+  <div class="card"><h2><i class="fa-solid fa-envelope" aria-hidden="true"></i> البريد والطباعة</h2>
   <div class="row">
     <div><label>بريد المرسل (اختياري)</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
       <p class="hint">إن ترك فارغًا يُستخدم MS_SENDER_EMAIL من config.env.</p></div>
     <div><label>تذييل البريد</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
     <div><label>تذييل نموذج الطباعة</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
   </div>
-  <div class="row">
-    <div><label>الشعار الأول</label><input type="file" name="logo_primary" accept="image/png,image/jpeg,image/webp">
-      <img src="{{ url_for('tenant_logo', tenant_id=t.id, which='primary') }}" alt="" style="height:50px;margin-top:6px"></div>
-    <div><label>الشعار الثاني</label><input type="file" name="logo_secondary" accept="image/png,image/jpeg,image/webp">
-      {% if t.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which='secondary') }}" alt="" style="height:50px;margin-top:6px">{% endif %}</div>
-  </div>
-  <button class="btn" type="submit">حفظ</button>
-</form></div>
+  <div class="graph-status">
+    <b><i class="fa-brands fa-microsoft" aria-hidden="true"></i> Microsoft Graph</b>
+    {% if graph.ready %}<span class="badge ok">مضبوط</span>{% else %}<span class="badge bad">غير مضبوط</span>{% endif %}
+    <span class="badge {{ 'ok' if graph.tenant else 'bad' }}">Tenant ID</span>
+    <span class="badge {{ 'ok' if graph.client else 'bad' }}">Client ID</span>
+    <span class="badge {{ 'ok' if graph.secret else 'bad' }}">Client Secret</span>
+    <span class="muted">المرسل: <span class="mono">{{ graph.sender or '—' }}</span></span>
+    <p class="hint">تُضبط هذه القيم في <bdi dir="ltr">config.env</bdi> عند التثبيت عبر <bdi dir="ltr">1_setup.bat</bdi> ولا تُعرض هنا.</p>
+  </div></div>
+  <p style="margin-bottom:22px"><button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> حفظ</button></p>
+</form>
 
-<h2 style="margin:18px 0 10px">استيراد من Google Sheet القديم</h2>
-<div class="card"><form method="post" action="{{ url_for('admin.import_sheet') }}" enctype="multipart/form-data">
+<div class="card"><h2><i class="fa-solid fa-file-import" aria-hidden="true"></i> استيراد من Google Sheet القديم</h2><form method="post" action="{{ url_for('admin.import_sheet') }}" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <p class="hint">في Google Sheets: ملف ← تنزيل ← Microsoft Excel ‏(.xlsx)، ثم ارفع الملف هنا. تُستورد أوراق «الاقسام» و«النماذج» و«الردود» و«العهد»،
   ويُضاف موظفو النماذج إلى سجل الموظفين (موقوفين). إعادة الاستيراد لا تكرر ما استُورد، ولا تُرسل أي رسائل بريد.</p>
   <div class="row"><div><input type="file" name="file" accept=".xlsx" required></div></div>
-  <button class="btn" type="submit" data-confirm="استيراد بيانات الملف إلى هذه المنظمة؟">استيراد</button>
+  <button class="btn" type="submit" data-confirm="استيراد بيانات الملف إلى هذه المنظمة؟"><i class="fa-solid fa-file-import" aria-hidden="true"></i> استيراد</button>
 </form></div>
 {% endblock %}

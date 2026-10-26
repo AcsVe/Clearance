@@ -6,7 +6,7 @@
 {% if may_add %}
 <div class="grid2">
 <details class="card panel" {% if not rows %}open{% endif %}>
-  <summary>📦 تسليم عهدة</summary>
+  <summary><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> تسليم عهدة</summary>
   <form method="post" action="{{ url_for('custody.add') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row">
@@ -33,7 +33,7 @@
   </form>
 </details>
 <details class="card panel">
-  <summary>📋 إضافة قائمة أو استيراد ملف</summary>
+  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> إضافة قائمة أو استيراد ملف</summary>
   <form method="post" action="{{ url_for('custody.import_list') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <label>الصق القائمة (سطر لكل عهدة، والأعمدة مفصولة بفاصلة أو Tab)</label>
@@ -57,7 +57,7 @@
   <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="مستلم الإرجاع" style="width:auto;padding:5px 8px">
   <button class="btn small ok" name="action" value="return" data-confirm="تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟">استرجاع</button>
   <button class="btn small secondary" name="action" value="handed">إعادة إلى «مسلمة»</button>
-  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print">🖨 طباعة الإيصالات</button>
+  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print"><i class="fa-solid fa-print" aria-hidden="true"></i> طباعة الإيصالات</button>
   <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من سجلات العهد نهائيًا؟">حذف</button>
 </form>
 <div class="card table-wrap"><table data-table id="t-cust">
@@ -73,7 +73,7 @@
 <td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
 <td class="mono">{{ c.returned_at or '—' }}{% if c.returned_to %}<br><small>{{ c.returned_to }}</small>{% endif %}</td>
 <td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('custody.edit', cid=c.id) }}">تفاصيل</a>
-  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال">🖨</a></td></tr>
+  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال" aria-label="إيصال"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد عهد مسجّلة.</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

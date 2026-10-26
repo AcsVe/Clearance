@@ -18,32 +18,32 @@
 <h2 style="margin:6px 0 10px">الوصول السريع</h2>
 <div class="grid">
   {% if has_perm('clearance.create') %}
-  <a class="tile" href="{{ url_for('clearance.new') }}"><span class="ic">📝</span><b>نموذج براءة ذمة جديد</b><small>يُرسل إلى الأقسام للتوقيع</small></a>
+  <a class="tile" href="{{ url_for('clearance.new') }}"><span class="ic"><i class="fa-solid fa-file-circle-plus" aria-hidden="true"></i></span><b>نموذج براءة ذمة جديد</b><small>يُرسل إلى الأقسام للتوقيع</small></a>
   {% endif %}
   {% if has_perm('clearance.sign') %}
-  <a class="tile" href="{{ url_for('clearance.portal') }}"><span class="ic">✍️</span><b>بوابة الأقسام</b><small>توقيع براءة الذمة لقسمك</small></a>
+  <a class="tile" href="{{ url_for('clearance.portal') }}"><span class="ic"><i class="fa-solid fa-file-signature" aria-hidden="true"></i></span><b>بوابة الأقسام</b><small>توقيع براءة الذمة لقسمك</small></a>
   {% endif %}
   {% if has_perm('finance.settle') %}
-  <a class="tile" href="{{ url_for('clearance.finance') }}"><span class="ic">💼</span><b>بوابة المحاسبة</b><small>تسوية النماذج المعلقة</small></a>
+  <a class="tile" href="{{ url_for('clearance.finance') }}"><span class="ic"><i class="fa-solid fa-scale-balanced" aria-hidden="true"></i></span><b>بوابة المحاسبة</b><small>تسوية النماذج المعلقة</small></a>
   {% endif %}
   {% if has_perm('custody.manage') or has_perm('custody.manage_all') or has_perm('custody.view_all') %}
-  <a class="tile" href="{{ url_for('custody.index') }}"><span class="ic">📦</span><b>العهد العينية</b><small>تسليم واسترجاع وطباعة الإيصالات</small></a>
+  <a class="tile" href="{{ url_for('custody.index') }}"><span class="ic"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span><b>العهد العينية</b><small>تسليم واسترجاع وطباعة الإيصالات</small></a>
   {% endif %}
   {% if has_perm('employees.manage') %}
-  <a class="tile" href="{{ url_for('employees.index') }}"><span class="ic">🧑‍💼</span><b>سجل الموظفين</b><small>إضافة واستيراد وتعديل</small></a>
+  <a class="tile" href="{{ url_for('employees.index') }}"><span class="ic"><i class="fa-solid fa-id-badge" aria-hidden="true"></i></span><b>سجل الموظفين</b><small>إضافة واستيراد وتعديل</small></a>
   {% endif %}
-  <a class="tile" href="{{ url_for('custody.mine') }}"><span class="ic">🎒</span><b>عهدي</b><small>ما سُلّم إليك ونماذجك</small></a>
+  <a class="tile" href="{{ url_for('custody.mine') }}"><span class="ic"><i class="fa-solid fa-box-open" aria-hidden="true"></i></span><b>عهدي</b><small>ما سُلّم إليك ونماذجك</small></a>
   {% if has_perm('users.manage') %}
-  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic">👥</span><b>المستخدمون والأدوار</b><small>الحسابات والمهام وربط الأقسام</small></a>
+  <a class="tile" href="{{ url_for('admin.users') }}"><span class="ic"><i class="fa-solid fa-users-gear" aria-hidden="true"></i></span><b>المستخدمون والأدوار</b><small>الحسابات والمهام وربط الأقسام</small></a>
   {% endif %}
   {% if has_perm('departments.manage') %}
-  <a class="tile" href="{{ url_for('admin.departments') }}"><span class="ic">🏢</span><b>الأقسام</b><small>الأقسام العادية وشؤون الموظفين والمحاسبة</small></a>
+  <a class="tile" href="{{ url_for('admin.departments') }}"><span class="ic"><i class="fa-solid fa-building" aria-hidden="true"></i></span><b>الأقسام</b><small>الأقسام العادية وشؤون الموظفين والمحاسبة</small></a>
   {% endif %}
   {% if has_perm('email_log.view') %}
-  <a class="tile" href="{{ url_for('admin.email_log', failed=1) }}"><span class="ic">✉️</span><b>أخطاء البريد</b><small>رسائل لم تصل وسبب الفشل</small></a>
+  <a class="tile" href="{{ url_for('admin.email_log', failed=1) }}"><span class="ic"><i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i></span><b>أخطاء البريد</b><small>رسائل لم تصل وسبب الفشل</small></a>
   {% endif %}
   {% if has_perm('audit.view') %}
-  <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic">📜</span><b>سجل التدقيق</b><small>من فعل ماذا ومتى</small></a>
+  <a class="tile" href="{{ url_for('admin.audit_log') }}"><span class="ic"><i class="fa-solid fa-clock-rotate-left" aria-hidden="true"></i></span><b>سجل التدقيق</b><small>من فعل ماذا ومتى</small></a>
   {% endif %}
 </div>
 {% endblock %}

@@ -27,12 +27,12 @@
   {% if can_manage %}<button class="btn" type="submit" style="margin-top:10px">حفظ</button>{% endif %}
   </fieldset>
   <a class="btn secondary" href="{{ url_for('custody.index') }}" style="margin-top:10px">رجوع</a>
-  <a class="btn secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" style="margin-top:10px">🖨 الإيصال</a>
+  <a class="btn secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" style="margin-top:10px"><i class="fa-solid fa-print" aria-hidden="true"></i> الإيصال</a>
 </form>
 {% if can_manage and c.status == 'handed' %}
 <form method="post" action="{{ url_for('custody.return_one', cid=c.id) }}" class="card actions-row" style="margin-top:12px">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <label style="margin:0">مستلم الإرجاع</label><input type="text" name="returned_to" value="{{ current_user.full_name }}" style="max-width:260px">
-  <button class="btn ok" type="submit" data-confirm="تسجيل استرجاع العهدة وإرسال الإشعارات؟">✅ تسجيل الاسترجاع</button>
+  <button class="btn ok" type="submit" data-confirm="تسجيل استرجاع العهدة وإرسال الإشعارات؟"><i class="fa-solid fa-rotate-left" aria-hidden="true"></i> تسجيل الاسترجاع</button>
 </form>{% endif %}
 {% endblock %}

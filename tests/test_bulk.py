@@ -92,3 +92,35 @@ def test_employee_dashboard_has_no_admin_numbers(app, two_tenants):
     login(c, 'emp', org='a')
     page = c.get('/home').get_data(as_text=True)
     assert 'الحسابات الفعّالة' not in page
+
+
+def test_settings_logo_removal_and_graph_status(app, two_tenants):
+    import io
+    from extensions import db
+    from models import Tenant
+    from tenancy import tenant_bypass
+    keys = ('MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET')
+    saved = {k: app.config.get(k) for k in keys}
+    app.config.update(MS_TENANT_ID='tid-value', MS_CLIENT_ID='', MS_CLIENT_SECRET='very-secret-value')
+    c = _admin(app)
+    try:
+        page = c.get('/admin/settings').get_data(as_text=True)
+    finally:
+        app.config.update(saved)
+    assert 'Microsoft Graph' in page and 'غير مضبوط' in page
+    assert 'very-secret-value' not in page and 'tid-value' not in page        # never the values
+    assert 'brand/system.svg' in page and 'remove_logo_primary' not in page   # no logo yet: system icon
+    png = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
+           b'\x00\x00\x00\rIDATx\x9cc\xf8\x0f\x00\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82')
+    form = {'name_ar': 'مدرسة أ', 'accent_color': '#0C67EC'}
+    r = c.post('/admin/settings', data={**form, 'logo_primary': (io.BytesIO(png), 'logo.png')},
+               content_type='multipart/form-data')
+    assert r.status_code == 302
+    with app.app_context(), tenant_bypass():
+        assert db.session.get(Tenant, two_tenants['a']).logo_primary
+    assert 'remove_logo_primary' in c.get('/admin/settings').get_data(as_text=True)
+    assert c.post('/admin/settings', data={**form, 'remove_logo_primary': '1'}).status_code == 302
+    with app.app_context(), tenant_bypass():
+        assert db.session.get(Tenant, two_tenants['a']).logo_primary is None
+    home = c.get('/home').get_data(as_text=True)
+    assert 'brand/system.svg' in home

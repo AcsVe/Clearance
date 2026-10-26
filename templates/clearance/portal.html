@@ -17,7 +17,7 @@
 <td class="mono">{{ r.form.ref_code }}</td><td>{{ r.department.icon }} {{ r.department.name }}</td>
 <td class="mono">{{ r.form.resign_date or '—' }}</td><td data-value="{{ r.status_label }}">{{ resp_badge(r) }}</td>
 <td>{{ respond_form(r, request.full_path) }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد طلبات بانتظارك 👍</td></tr>{% endfor %}
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد طلبات بانتظارك.</td></tr>{% endfor %}
 </tbody></table></div>
 
 <h2 style="margin:18px 0 10px">وُقّعت (خالية الذمة) — ما زالت مفتوحة</h2>

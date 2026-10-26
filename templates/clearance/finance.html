@@ -24,7 +24,7 @@
 <tbody>{% for f in settled %}
 <tr><td>{{ f.employee_name }}</td><td class="mono">{{ f.ref_code }}</td><td>{{ f.finance_note or '—' }}</td><td>{{ f.settled_by or '—' }}</td>
 <td class="mono">{{ f.settled_at.strftime('%Y-%m-%d') }}</td>
-<td><a class="btn small secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener">🖨 إثبات التسوية</a></td></tr>
+<td><a class="btn small secondary" href="{{ url_for('clearance.print_form', form_id=f.id) }}" target="_blank" rel="noopener"><i class="fa-solid fa-print" aria-hidden="true"></i> إثبات التسوية</a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">—</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

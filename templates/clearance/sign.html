@@ -1,11 +1,12 @@
-{% extends 'base.html' %}
+{# Opened from the e-mail link: inside the app for a signed-in user, otherwise in the sign-in look. #}
+{% extends 'base.html' if current_user else 'clearance/_public.html' %}
 {% block title %}توقيع براءة الذمة{% endblock %}
 {% block content %}
 {% if not resp %}
-<div class="card" style="max-width:560px;margin:30px auto;text-align:center">
-  <h1>الرابط غير صالح</h1><p class="muted">تأكد من نسخ الرابط كاملًا من البريد، أو ادخل إلى النظام وافتح «بوابة الأقسام».</p></div>
+<div class="card sign-card" style="max-width:560px;margin:30px auto;text-align:center">
+  <h1><i class="fa-solid fa-link-slash" aria-hidden="true"></i> الرابط غير صالح</h1><p class="muted">تأكد من نسخ الرابط كاملًا من البريد، أو ادخل إلى النظام وافتح «بوابة الأقسام».</p></div>
 {% else %}
-<div class="card" style="max-width:720px;margin:10px auto">
+<div class="card sign-card" style="max-width:720px;margin:10px auto">
   <h1>{{ resp.department.icon }} {{ resp.department.name }} — توقيع براءة الذمة</h1>
   <div class="info-grid">
     <div><small>الموظف</small><b>{{ f.employee_name }}</b></div>
@@ -25,12 +26,12 @@
   <form method="post" class="respond big">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="choice">
-      <label><input type="radio" name="status" value="cleared" {% if resp.status != 'held' %}checked{% endif %}> ✅ خالية الذمة</label>
-      <label><input type="radio" name="status" value="held" {% if resp.status == 'held' %}checked{% endif %}> ⛔ معلق (توجد التزامات)</label>
+      <label><input type="radio" name="status" value="cleared" {% if resp.status != 'held' %}checked{% endif %}> <i class="fa-solid fa-circle-check" style="color:var(--ok)" aria-hidden="true"></i> خالية الذمة</label>
+      <label><input type="radio" name="status" value="held" {% if resp.status == 'held' %}checked{% endif %}> <i class="fa-solid fa-circle-xmark" style="color:var(--bad)" aria-hidden="true"></i> معلق (توجد التزامات)</label>
     </div>
     <label>الملاحظات</label><textarea name="note" rows="3" placeholder="إلزامية عند التعليق: ما المطلوب من الموظف">{{ resp.note or '' }}</textarea>
     <label>اسم الموقّع *</label><input type="text" name="by_name" value="{{ resp.responded_by or (current_user.full_name if current_user else resp.department.manager_name or '') }}" required>
-    <button class="btn" type="submit" style="margin-top:12px">حفظ الرد</button>
+    <button class="btn" type="submit" style="margin-top:12px"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> حفظ الرد</button>
   </form>
   {% if resp.responded_at %}<p class="hint">آخر رد: {{ resp.responded_by }} — {{ resp.responded_at.strftime('%Y-%m-%d %H:%M') }} (UTC). يمكنكم تعديله ما دام النموذج مفتوحًا.</p>{% endif %}
   {% endif %}

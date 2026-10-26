@@ -1,17 +1,15 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
-<head>{% include '_head.html' %}<title>{% block title %}{% endblock %}</title></head>
-<body>
-<div class="auth-wrap"><div class="auth-card">
-  <div class="logos">
-    {% if current_tenant %}
-      <img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='primary') }}" alt="">
-      {% if current_tenant.logo_secondary %}<img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt="">{% endif %}
-    {% else %}<img src="{{ url_for('static', filename='logo.png') }}" alt="">{% endif %}
-  </div>
-  <h1>{% block heading %}{% endblock %}</h1>
-  <p class="sub">{{ current_tenant.name_ar if current_tenant else 'نظام براءة الذمة والعهد العينية' }}</p>
+<head>{% include '_head.html' %}<title>{% block title %}{% endblock %} — {{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}</title></head>
+<body class="auth">
+<div class="auth-wrap"><div class="auth-card{% block card_class %}{% endblock %}">
+  <div class="logo-circle">{% include '_brand_logo.html' %}</div>
+  {% if current_tenant and current_tenant.logo_secondary %}<div class="logos2"><img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt=""></div>{% endif %}
+  <div class="brand-title">{% block brand %}{{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}{% endblock %}</div>
+  <div class="brand-sub">نظام براءة الذمة والعهد العينية</div>
+  {% block heading_wrap %}<h1>{% block heading %}{% endblock %}</h1>{% endblock %}
   {% include '_flash.html' %}
   {% block body %}{% endblock %}
 </div></div>
+<footer class="auth-foot">© {{ now_year }} <b>{{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}</b></footer>
 </body></html>

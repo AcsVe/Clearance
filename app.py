@@ -142,7 +142,14 @@ def _register_request_hooks(app):
             'superadmin': g.get('superadmin'),
             'has_perm': has_perm,
             'accent': (tenant.accent_color if tenant else app.config['ACCENT_COLOR']),
+            'now_year': _amman_year(),
         }
+
+
+def _amman_year():
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    return datetime.now(ZoneInfo('Asia/Amman')).year
 
 
 def _register_pwa_routes(app):
@@ -165,7 +172,7 @@ def _register_pwa_routes(app):
         data = {
             'name': f'براءة الذمة والعهد — {name}', 'short_name': 'براءة الذمة',
             'start_url': '/', 'scope': '/', 'display': 'standalone',
-            'background_color': '#eef3f5', 'theme_color': '#1B3358',
+            'background_color': '#f0f4fa', 'theme_color': '#0C67EC',
             'lang': 'ar', 'dir': 'rtl',
             'icons': [
                 {'src': '/static/icon-192.png', 'sizes': '192x192', 'type': 'image/png'},
@@ -199,6 +206,20 @@ def _register_error_handlers(app):
     @app.errorhandler(404)
     def not_found(e):
         return render_template('errors/error.html', code=404, message='الصفحة غير موجودة'), 404
+
+    from flask_wtf.csrf import CSRFError
+
+    @app.errorhandler(CSRFError)
+    def csrf_error(e):
+        """An old form (the page stayed open, or the session changed in another tab): back to the page with a
+        clear message instead of «Bad Request»."""
+        from flask import flash, redirect, request, url_for
+        from urllib.parse import urlparse
+        flash('انتهت صلاحية الصفحة — أعد المحاولة', 'warning')
+        back = request.referrer or ''
+        if not back or urlparse(back).netloc != request.host:
+            back = url_for('main.index')
+        return redirect(back)
 
     @app.errorhandler(TenantContextError)
     def tenant_error(e):

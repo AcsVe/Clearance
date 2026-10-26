@@ -6,7 +6,7 @@
 <thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
 <tbody>{% for c in rows %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}</td><td>{{ c.department.name }}</td>
 <td class="mono">{{ c.handed_at or '—' }}</td><td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
-<td class="mono">{{ c.returned_at or '—' }}</td><td><a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener">🖨</a></td></tr>
+<td class="mono">{{ c.returned_at or '—' }}</td><td><a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال" aria-label="إيصال"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد عهد مسجّلة باسمك.</td></tr>{% endfor %}</tbody></table></div>
 {% if forms %}
 <h2 style="margin:16px 0 10px">نماذج براءة الذمة</h2>
