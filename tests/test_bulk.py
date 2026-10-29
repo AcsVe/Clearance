@@ -107,7 +107,7 @@ def test_settings_logo_removal_and_graph_status(app, two_tenants):
         page = c.get('/admin/settings').get_data(as_text=True)
     finally:
         app.config.update(saved)
-    assert 'Microsoft Graph' in page and 'غير مضبوط' in page
+    assert 'إرسال البريد الإلكتروني' in page and 'غير جاهز' in page and 'config.env' not in page
     assert 'very-secret-value' not in page and 'tid-value' not in page        # never the values
     assert 'brand/system.svg' in page and 'remove_logo_primary' not in page   # no logo yet: system icon
     png = (b'\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01\x08\x06\x00\x00\x00\x1f\x15\xc4\x89'
