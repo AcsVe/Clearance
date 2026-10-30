@@ -18,6 +18,6 @@ schtasks /run /tn "CLEARANCE Website" >nul
 echo.
 echo   Done. CLEARANCE starts with Windows (port 8006), backs up every hour,
 echo   and the watchdog checks every 5 minutes. Log: logs\server.log
-timeout /t 5 >nul
+"%SystemRoot%\System32\timeout.exe" /t 5 >nul
 start "" https://6.iajaward.org/login
 pause
