@@ -1,6 +1,6 @@
 """ربط 6.iajaward.org (براءة الذمة) بالكمبيوتر أو بالهاتف عبر Cloudflare API (بدون لوحة Cloudflare).
 
-    python ops/cf.py setup      # مرة واحدة: سجل DNS + ربط الاسم بنفق السيرفر + إنشاء نفق الهاتف clearance-standby
+    python ops/cf.py setup      # مرة واحدة: سجل DNS + ربط الاسم بنفق الخادم + إنشاء نفق الهاتف clearance-standby
     python ops/cf.py status     # أين يعمل 6.iajaward.org الآن + تشخيص
     python ops/cf.py phone      # 6.iajaward.org ← الهاتف
     python ops/cf.py server     # 6.iajaward.org ← الكمبيوتر

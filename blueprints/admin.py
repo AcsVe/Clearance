@@ -575,7 +575,7 @@ def settings():
 def import_sheet():
     fs = request.files.get('file')
     if not fs or not fs.filename.lower().endswith('.xlsx'):
-        flash('اختر ملف Excel ‏(.xlsx) المنزَّل من Google Sheets', 'danger')
+        flash('اختر ملف Excel ‏(.xlsx) المحمَّل من Google Sheets', 'danger')
         return redirect(url_for('admin.settings'))
     from services.sheets_import import import_workbook
     try:

@@ -1,7 +1,7 @@
 """استيراد بيانات Google Sheet القديمة (الأقسام، النماذج، الردود، العهد) إلى منظمة.
 
     python ops/import_sheets.py [ملف.xlsx] [الاسم المختصر للمنظمة]
-نزّل الملف من Google Sheets: ملف ← تنزيل ← Microsoft Excel (.xlsx). إعادة التشغيل لا تكرر ما استُورد.
+حمِّل الملف من Google Sheets: ملف ← تنزيل ← Microsoft Excel (.xlsx). إعادة التشغيل لا تكرر ما استُورد.
 يمكن الاستيراد أيضاً من داخل النظام: الإدارة ← الإعدادات ← «استيراد من Google Sheet».
 """
 import glob
@@ -28,7 +28,7 @@ def main():
     path = sys.argv[1] if len(sys.argv) > 1 else ''
     if not path:
         guess = find_xlsx()
-        print(t('\n  ملف Excel المنزَّل من Google Sheet (ملف ← تنزيل ← Microsoft Excel)',
+        print(t('\n  ملف Excel المحمَّل من Google Sheet (ملف ← تنزيل ← Microsoft Excel)',
                 '\n  The Excel file downloaded from the Google Sheet (File > Download > Microsoft Excel)'))
         path = input(f'  {t("المسار", "Path")}' + (f' [{guess}]' if guess else '') + ': ').strip().strip('"') or guess
     if not path or not os.path.isfile(path):
