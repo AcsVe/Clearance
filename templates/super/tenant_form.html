@@ -26,4 +26,21 @@
   {% endif %}
   <button class="btn" type="submit">حفظ</button>
 </form></div>
+{% if not new and users %}
+<div class="card" id="password"><h2>كلمة مرور جديدة لحساب في المنظمة</h2>
+  <p>لمن نسي كلمة مروره ولم يصله رابط البريد: يُفك قفل الحساب ويُفعَّل، ويخرج من أي جلسة مفتوحة.</p>
+  <form method="post" action="{{ url_for('super.tenant_user_password', tenant_id=t.id) }}" autocomplete="off">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <div class="row">
+      <div><label for="pw_user">الحساب</label><select id="pw_user" name="user_id" required>
+        {% for u in users %}<option value="{{ u.id }}">{{ u.username }} — {{ u.full_name }}{% if u.admin %} (مدير){% endif %}{% if not u.active %} (موقوف){% endif %}{% if u.locked %} (مقفل){% endif %}</option>{% endfor %}
+      </select></div>
+      <div><label for="pw1">كلمة المرور الجديدة</label><input id="pw1" type="password" name="new_password" autocomplete="new-password" dir="ltr" required minlength="10"></div>
+      <div><label for="pw2">أعد كتابتها</label><input id="pw2" type="password" name="new_password2" autocomplete="new-password" dir="ltr" required minlength="10"></div>
+    </div>
+    <div class="checks"><label><input type="checkbox" name="must_change" value="1"> يُطلب من صاحب الحساب تغييرها عند أول دخول</label></div><br>
+    <button class="btn" type="submit">تعيين كلمة المرور</button>
+  </form>
+</div>
+{% endif %}
 {% endblock %}

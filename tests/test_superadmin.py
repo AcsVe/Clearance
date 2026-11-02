@@ -52,3 +52,29 @@ def test_superadmin_lockout(app, ctx):
     for _ in range(5):
         c.post('/super/login', data={'username': 'root', 'password': 'nope-nope-1'})
     assert c.post('/super/login', data={'username': 'root', 'password': PASSWORD}).status_code == 401
+
+
+def test_superadmin_sets_a_forgotten_password(app, two_tenants):
+    from datetime import datetime, timedelta
+    from models import User
+    from tenancy import tenant_bypass
+    with tenant_bypass():
+        u = db.session.get(User, two_tenants['admin_a'])
+        u.locked_until = datetime.utcnow() + timedelta(hours=1)
+        u.failed_logins = 7
+        db.session.add(SuperAdmin(username='root', password_hash=hash_password(PASSWORD)))
+        db.session.commit()
+    c = app.test_client()
+    assert c.post('/super/login', data={'username': 'root', 'password': PASSWORD}).status_code == 302
+    page = c.get(f'/super/tenants/{two_tenants["a"]}').get_data(as_text=True)
+    assert 'كلمة مرور جديدة لحساب في المنظمة' in page and 'secretuser' not in page      # only that organisation's accounts
+    r = c.post(f'/super/tenants/{two_tenants["a"]}/password',
+               data={'user_id': two_tenants['admin_a'], 'new_password': 'Short1', 'new_password2': 'Short1'})
+    assert r.status_code == 302
+    r = c.post(f'/super/tenants/{two_tenants["a"]}/password',
+               data={'user_id': two_tenants['secret_b'], 'new_password': 'NewPassw0rd2026', 'new_password2': 'NewPassw0rd2026'})
+    assert r.status_code == 404                                     # an account of another organisation is out of reach
+    r = c.post(f'/super/tenants/{two_tenants["a"]}/password',
+               data={'user_id': two_tenants['admin_a'], 'new_password': 'NewPassw0rd2026', 'new_password2': 'NewPassw0rd2026'})
+    assert r.status_code == 302
+    assert login(app.test_client(), 'admin', 'NewPassw0rd2026', org='a').status_code == 302

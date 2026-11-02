@@ -158,5 +158,46 @@ def tenant_edit(tenant_id):
             return redirect(url_for('super.tenants'))
         db.session.rollback()
         t = db.session.get(Tenant, tenant_id)
-    return render_template('super/tenant_form.html', t=t, errors=errors, new=False), \
+    return render_template('super/tenant_form.html', t=t, errors=errors, new=False, users=_tenant_users(t.id)), \
         (400 if errors else 200)
+
+
+def _tenant_users(tenant_id):
+    """The organisation's accounts for the password form: admins first, with their state."""
+    with tenant_context(tenant_id):
+        admin_role = Role.query.filter_by(key='admin').first()
+        admins = {ur.user_id for ur in UserRole.query.filter_by(role_id=admin_role.id).all()} if admin_role else set()
+        users = User.query.order_by(User.username).all()
+        return sorted(({'id': u.id, 'username': u.username, 'full_name': u.full_name, 'admin': u.id in admins,
+                        'active': u.is_active, 'locked': bool(u.locked_until)} for u in users),
+                      key=lambda x: (not x['admin'], x['username'].lower()))
+
+
+@super_bp.route('/tenants/<int:tenant_id>/password', methods=['POST'])
+@superadmin_required
+def tenant_user_password(tenant_id):
+    """A new password for an account of the organisation (when its admin forgot it): the account is also unlocked
+    and activated, and its open sessions end."""
+    t = db.session.get(Tenant, tenant_id) or abort(404)
+    f = request.form
+    with tenant_context(t.id):
+        u = db.session.get(User, f.get('user_id', type=int) or 0)
+        if u is None:
+            abort(404)
+        pw = f.get('new_password') or ''
+        problems = password_problems(pw, u.username)
+        if pw != (f.get('new_password2') or ''):
+            problems.append('كلمتا المرور غير متطابقتين')
+        if problems:
+            flash('لم تتغير كلمة المرور: ' + '، '.join(problems), 'danger')
+            return redirect(url_for('super.tenant_edit', tenant_id=t.id) + '#password')
+        u.password_hash = hash_password(pw)
+        u.is_active = True
+        u.failed_logins = 0
+        u.locked_until = None
+        u.must_change_password = f.get('must_change') == '1'
+        u.session_version = (u.session_version or 1) + 1
+        audit('user.password_set_by_superadmin', 'user', u.id, actor='مدير عام: ' + g.superadmin.username)
+        db.session.commit()
+        flash(f'تغيّرت كلمة مرور «{u.username}» وفُك قفل الحساب. الدخول من صفحة الدخول العادية.', 'success')
+    return redirect(url_for('super.tenant_edit', tenant_id=t.id))
