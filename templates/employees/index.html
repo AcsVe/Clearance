@@ -59,6 +59,9 @@
   <label style="display:inline-flex;gap:4px;font-weight:500;margin:0"><input type="checkbox" name="send_reset" value="1" checked> مع رابط كلمة المرور</label>
   <button class="btn small secondary" name="action" value="accounts" data-confirm="إنشاء حسابات دخول (دور «موظف») لـ {n} من الموظفين الذين لهم بريد؟">إنشاء حسابات دخول</button>
   {% endif %}
+  {% if has_perm('clearance.create') %}
+  <button class="btn small secondary" formaction="{{ url_for('clearance.new_many') }}" name="action" value="clearance"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> بدء براءة ذمة</button>
+  {% endif %}
   <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الموظفين؟ نماذج براءة الذمة السابقة تبقى محفوظة باسمهم.">حذف</button>
 </form>
 

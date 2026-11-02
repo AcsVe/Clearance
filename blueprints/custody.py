@@ -119,7 +119,12 @@ def index():
     user = current_user()
     rows = visible_query(user).order_by(Custody.status, Custody.id.desc()).all()
     manage_ids = manageable_dept_ids(user)
-    return render_template('custody/index.html', rows=rows, departments=_depts_for(user),
+    pre = None                                   # «hand custody» from an employee card: that employee is chosen
+    if (request.args.get('employee_id') or '').isdigit():
+        pre = get_scoped(Employee, int(request.args['employee_id']))
+    from blueprints.auth import _safe_next
+    return render_template('custody/index.html', rows=rows, departments=_depts_for(user), pre=pre,
+                           back=_safe_next(request.args.get('next')),
                            employees=Employee.query.filter_by(is_active=True).order_by(Employee.full_name).all(),
                            can_manage=lambda c: manage_ids is None or c.department_id in manage_ids,
                            may_add=manage_ids is None or bool(manage_ids), field_labels=FIELD_LABELS,
@@ -176,7 +181,8 @@ def add():
     if request.form.get('notify', '1') == '1':
         mail_handed(c)
     flash(f'سُلّمت العهدة {c.ref_code}', 'success')
-    return redirect(url_for('custody.index'))
+    from blueprints.auth import _safe_next
+    return redirect(_safe_next(request.form.get('next')) or url_for('custody.index'))
 
 
 @custody_bp.route('/custody/<int:cid>', methods=['GET', 'POST'])

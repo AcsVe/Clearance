@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block title %}براءة ذمة لعدة موظفين{% endblock %}
+{% block content %}
+<h1>براءة ذمة لعدة موظفين <span class="count-pill">{{ people|length }}</span></h1>
+{% for e in errors %}<div class="alert danger">{{ e }}</div>{% endfor %}
+<form method="post" class="card">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+  <input type="hidden" name="step" value="create">
+  {% for p in people %}<input type="hidden" name="ids" value="{{ p.id }}">{% endfor %}
+  <div class="table-wrap"><table data-table id="t-many">
+  <thead><tr><th data-filter="text">الموظف</th><th data-filter="text">الرقم الوظيفي</th><th data-filter="select">القسم</th>
+  <th data-filter="select">البريد</th><th data-sort="num">عهد غير مسترجعة</th><th data-filter="select">نموذج مفتوح</th></tr></thead>
+  <tbody>{% for p in people %}
+  <tr><td><a href="{{ url_for('employees.form', emp_id=p.id) }}">{{ p.full_name }}</a></td><td class="mono">{{ p.employee_number or '—' }}</td>
+  <td>{{ p.department.name if p.department else '—' }}</td>
+  <td data-value="{{ 'له بريد' if p.email else 'بلا بريد' }}">{% if p.email %}<span class="mono">{{ p.email }}</span>{% else %}<span class="badge warn">بلا بريد</span>{% endif %}</td>
+  <td>{% if custody.get(p.id) %}<span class="badge warn">{{ custody[p.id] }}</span>{% else %}0{% endif %}</td>
+  <td data-value="{{ 'نعم' if p.id in busy else 'لا' }}">{% if p.id in busy %}<span class="badge warn">نعم</span>{% else %}لا{% endif %}</td></tr>
+  {% endfor %}</tbody></table></div>
+  <div class="row">
+    <div><label>تاريخ الاستقالة (للجميع)</label><input type="date" name="resign_date" value="{{ v.resign_date or '' }}"></div>
+  </div>
+  <label>الأقسام المطلوب توقيعها</label>
+  <div class="checks dept-checks">
+    {% for d in departments %}<label><input type="checkbox" name="departments" value="{{ d.id }}"
+      {% if not v.step or d.id|string in v.getlist('departments') %}checked{% endif %}>
+      {{ d.icon }} {{ d.name }}{% if d.dept_type != 'normal' %} <span class="badge">{{ 'شؤون الموظفين' if d.dept_type == 'HR' else 'المحاسبة' }}</span>{% elif not d.emails %} <span class="badge warn">بلا بريد</span>{% endif %}</label>{% endfor %}
+  </div>
+  {% if busy %}<div class="checks"><label><input type="checkbox" name="allow_duplicate" value="1"> إنشاء نموذج آخر لمن له نموذج مفتوح (وإلا يُترك)</label></div>{% endif %}
+  <p class="hint">يُنشأ نموذج مستقل لكل موظف برقم مرجعي خاص، ويصل كل قسم عادي بريدٌ برابط التوقيع لكل نموذج.</p>
+  <button class="btn" type="submit">إنشاء النماذج ({{ people|length }}) وإرسال الإشعارات</button>
+  <a class="btn secondary" href="{{ url_for('employees.index') }}">إلغاء</a>
+</form>
+{% endblock %}

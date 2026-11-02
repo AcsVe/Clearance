@@ -60,6 +60,19 @@ def new():
     depts = Department.query.filter_by(is_active=True).order_by(Department.sort_order, Department.name).all()
     employees = Employee.query.filter_by(is_active=True).order_by(Employee.full_name).all()
     values, errors = dict(request.form), []
+    picked = None                               # «start clearance» from an employee card
+    if request.method == 'GET' and (request.args.get('employee_id') or '').isdigit():
+        picked = get_scoped(Employee, int(request.args['employee_id']))
+        if picked is None:
+            abort(404)
+        values = {'employee_id': str(picked.id), 'employee_name': picked.full_name,
+                  'employee_number': picked.employee_number or '', 'employee_email': picked.email or '',
+                  'department_name': picked.department.name if picked.department else '',
+                  'job_title': picked.job_title or ''}
+        if picked not in employees:
+            employees = employees + [picked]
+    elif (values.get('employee_id') or '').isdigit():
+        picked = get_scoped(Employee, int(values['employee_id']))
     if request.method == 'POST':
         emp = None
         if (request.form.get('employee_id') or '').isdigit():
@@ -94,8 +107,63 @@ def new():
             else:
                 flash(f'أُنشئ النموذج {form.ref_code} وأُرسلت روابط التوقيع إلى الأقسام', 'success')
                 return redirect(url_for('clearance.view', form_id=form.id))
-    return render_template('clearance/new.html', departments=depts, employees=employees, v=values,
+    open_custody = Custody.query.filter_by(employee_id=picked.id, status='handed').order_by(Custody.handed_at).all() \
+        if picked else []
+    open_forms = ClearanceForm.query.filter(ClearanceForm.employee_id == picked.id,
+                                            ClearanceForm.status.in_(('in_progress', 'completed'))).all() if picked else []
+    return render_template('clearance/new.html', departments=depts, employees=employees, v=values, picked=picked,
+                           open_custody=open_custody, open_forms=open_forms,
                            errors=errors), (400 if errors else 200)
+
+
+@clearance_bp.route('/clearance/new-many', methods=['POST'])
+@permission_required('clearance.create')
+def new_many():
+    """Clearance for several employees at once (from the employee list): the same departments and resignation
+    date for all. First call: the choice page; second call (step=create): the forms."""
+    ids = sorted(_ids())
+    people = Employee.query.filter(Employee.id.in_(ids or [0])).order_by(Employee.full_name).all()
+    if not people:
+        flash('حدّد موظفاً واحداً على الأقل', 'warning')
+        return redirect(url_for('employees.index'))
+    depts = Department.query.filter_by(is_active=True).order_by(Department.sort_order, Department.name).all()
+    custody = {}
+    for c in Custody.query.filter(Custody.employee_id.in_(ids), Custody.status == 'handed').all():
+        custody[c.employee_id] = custody.get(c.employee_id, 0) + 1
+    busy = {f.employee_id for f in ClearanceForm.query.filter(ClearanceForm.employee_id.in_(ids),
+                                                              ClearanceForm.status.in_(('in_progress', 'completed')))}
+    errors = []
+    if request.form.get('step') == 'create':
+        chosen = {int(v) for v in request.form.getlist('departments') if v.isdigit()}
+        resign = parse_date(request.form.get('resign_date'))
+        if request.form.get('resign_date') and not resign:
+            errors.append('تاريخ الاستقالة غير صالح')
+        if not chosen:
+            errors.append('اختر قسمًا واحدًا على الأقل')
+        if not errors:
+            made, skipped = [], []
+            again = request.form.get('allow_duplicate') == '1'
+            for emp in people:
+                if emp.id in busy and not again:
+                    skipped.append(f'{emp.full_name} (له نموذج مفتوح)')
+                    continue
+                try:
+                    form = wf.create_form(employee=emp, employee_name=emp.full_name,
+                                          employee_number=emp.employee_number, employee_email=emp.email,
+                                          department_name=emp.department.name if emp.department else None,
+                                          job_title=emp.job_title, resign_date=resign, department_ids=chosen,
+                                          created_by=current_user().full_name)
+                except wf.WorkflowError as exc:
+                    skipped.append(f'{emp.full_name} ({exc})')
+                    continue
+                made.append(form.ref_code)
+            msg = f'النماذج المنشأة: {len(made)}، وأُرسلت روابط التوقيع إلى الأقسام'
+            if skipped:
+                msg += ' — تُرك: ' + '، '.join(skipped[:10])
+            flash(msg, 'success' if made else 'warning')
+            return redirect(url_for('clearance.index'))
+    return render_template('clearance/new_many.html', people=people, departments=depts, custody=custody,
+                           busy=busy, errors=errors, v=request.form), (400 if errors else 200)
 
 
 @clearance_bp.route('/clearance/<int:form_id>')

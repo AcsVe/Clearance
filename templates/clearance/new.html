@@ -3,6 +3,20 @@
 {% block content %}
 <h1>نموذج براءة ذمة جديد</h1>
 {% for e in errors %}<div class="alert danger">{{ e }}</div>{% endfor %}
+{% if picked %}
+<div class="card">
+  <p><b>{{ picked.full_name }}</b>{% if picked.employee_number %} — <span class="mono">{{ picked.employee_number }}</span>{% endif %}
+    — <a href="{{ url_for('employees.form', emp_id=picked.id) }}">بطاقة الموظف</a></p>
+  {% for f in open_forms %}<div class="alert warn">له نموذج مفتوح: <a class="mono" href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a> ({{ f.status_label }})</div>{% endfor %}
+  {% if open_custody %}
+  <p>عهد غير مسترجعة عليه ({{ open_custody|length }}) — تظهر لكل قسم في صفحة التوقيع:</p>
+  <div class="table-wrap"><table data-table id="t-new-cust">
+  <thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th></tr></thead>
+  <tbody>{% for c in open_custody %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}{% if c.serial_no %} <small class="mono muted">{{ c.serial_no }}</small>{% endif %}</td>
+  <td>{{ c.department.name }}</td><td class="mono">{{ c.handed_at or '—' }}</td></tr>{% endfor %}</tbody></table></div>
+  {% else %}<p class="muted">لا توجد عليه عهد غير مسترجعة.</p>{% endif %}
+</div>
+{% endif %}
 <form method="post" class="card" id="new-clearance">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">

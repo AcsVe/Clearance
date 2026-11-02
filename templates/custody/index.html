@@ -5,10 +5,11 @@
 
 {% if may_add %}
 <div class="grid2">
-<details class="card panel" {% if not rows %}open{% endif %}>
-  <summary><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> تسليم عهدة</summary>
+<details class="card panel" {% if not rows or pre %}open{% endif %}>
+  <summary><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> تسليم عهدة{% if pre %} إلى {{ pre.full_name }}{% endif %}</summary>
   <form method="post" action="{{ url_for('custody.add') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    {% if back %}<input type="hidden" name="next" value="{{ back }}">{% endif %}
     <div class="row">
       <div><label>العهدة *</label><input type="text" name="item" required placeholder="مثل: حاسوب محمول Dell"></div>
       <div><label>الكمية</label><input type="number" name="quantity" value="1" min="1"></div>
@@ -17,9 +18,10 @@
     <div class="row">
       <div><label>المستلم من سجل الموظفين</label><select name="employee_id" data-employee-picker>
         <option value="">— اختر أو اكتب الاسم —</option>
-        {% for e in employees %}<option value="{{ e.id }}" data-name="{{ e.full_name }}" data-email="{{ e.email or '' }}">{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}</select></div>
-      <div><label>اسم المستلم</label><input type="text" name="recipient_name" data-fill="name"></div>
-      <div><label>بريد المستلم</label><input type="email" name="recipient_email" dir="ltr" data-fill="email"></div>
+        {% if pre and not pre.is_active %}<option value="{{ pre.id }}" data-name="{{ pre.full_name }}" data-email="{{ pre.email or '' }}" selected>{{ pre.full_name }} (موقوف)</option>{% endif %}
+        {% for e in employees %}<option value="{{ e.id }}" data-name="{{ e.full_name }}" data-email="{{ e.email or '' }}" {% if pre and pre.id == e.id %}selected{% endif %}>{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}</select></div>
+      <div><label>اسم المستلم</label><input type="text" name="recipient_name" data-fill="name" value="{{ pre.full_name if pre else '' }}"></div>
+      <div><label>بريد المستلم</label><input type="email" name="recipient_email" dir="ltr" data-fill="email" value="{{ (pre.email or '') if pre else '' }}"></div>
     </div>
     <div class="row">
       <div><label>القسم المسلِّم *</label><select name="department_id" required>
@@ -30,6 +32,7 @@
     <div><label>ملاحظات</label><input type="text" name="notes"></div>
     <div class="checks" style="margin:8px 0"><label><input type="checkbox" name="notify" value="1" checked> إرسال إشعار للمستلم والقسم</label></div>
     <button class="btn" type="submit">تسليم</button>
+    {% if back %}<a class="btn secondary" href="{{ back }}">رجوع إلى بطاقة الموظف</a>{% endif %}
   </form>
 </details>
 <details class="card panel">
