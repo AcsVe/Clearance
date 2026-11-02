@@ -1,6 +1,6 @@
 // App-shell cache + offline page only. No business data is cached:
 // clearance and custody records always need a live connection.
-const CACHE_NAME = 'clearance-shell-v2';
+const CACHE_NAME = 'clearance-shell-v3';
 const SHELL = ['/static/offline.html', '/static/css/app.css', '/static/js/app.js',
   '/static/logo.png', '/static/brand/system.svg', '/static/icon-192.png', '/static/icon-512.png'];
 
