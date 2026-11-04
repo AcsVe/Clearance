@@ -15,6 +15,7 @@ from security import verify_password, hash_password, password_problems
 from tenancy import tenant_bypass, tenant_context
 from utils.helpers import client_ip, is_valid_email
 from utils.audit import audit
+from utils.i18n import pick
 
 super_bp = Blueprint('super', __name__)
 
@@ -53,7 +54,7 @@ def login():
         db.session.add(LoginAttempt(username='super:' + username, ip_address=client_ip(),
                                     success=False, reason='super_fail'))
         db.session.commit()
-        error = 'بيانات الدخول غير صحيحة أو الحساب مقفل مؤقتًا'
+        error = pick('بيانات الدخول غير صحيحة أو الحساب مقفل مؤقتًا', 'Wrong sign-in details, or the account is temporarily locked')
     return render_template('super/login.html', error=error), (401 if error else 200)
 
 
@@ -84,16 +85,16 @@ def _tenant_fields(t, errors):
     slug = (f.get('slug') or '').strip().lower()
     domain = (f.get('domain') or '').strip().lower() or None
     if not re.fullmatch(r'[a-z0-9-]{2,50}', slug):
-        errors.append('المعرّف (slug): حروف إنجليزية صغيرة وأرقام وشرطة')
+        errors.append(pick('المعرّف: حروف إنجليزية صغيرة وأرقام وشرطة', 'Identifier: small English letters, digits and dashes'))
     if not (f.get('name_ar') or '').strip():
-        errors.append('الاسم العربي مطلوب')
+        errors.append(pick('الاسم العربي مطلوب', 'The Arabic name is required'))
     if domain and not re.fullmatch(r'[a-z0-9.-]{3,200}', domain):
-        errors.append('النطاق غير صالح')
+        errors.append(pick('النطاق غير صالح', 'The domain is not valid'))
     with tenant_bypass():
         if Tenant.query.filter(Tenant.slug == slug, Tenant.id != (t.id or 0)).first():
-            errors.append('المعرّف مستخدم')
+            errors.append(pick('المعرّف مستخدم', 'The identifier is taken'))
         if domain and Tenant.query.filter(Tenant.domain == domain, Tenant.id != (t.id or 0)).first():
-            errors.append('النطاق مستخدم لمنظمة أخرى')
+            errors.append(pick('النطاق مستخدم لمنظمة أخرى', 'The domain is used by another organization'))
     t.slug, t.domain = slug, domain
     t.name_ar = (f.get('name_ar') or '').strip()
     t.name_en = (f.get('name_en') or '').strip() or None
@@ -114,11 +115,11 @@ def tenant_new():
         a_email = (f.get('admin_email') or '').strip() or None
         a_pw = f.get('admin_password') or ''
         if not re.fullmatch(r'[A-Za-z0-9._@-]{3,80}', a_user):
-            errors.append('اسم مستخدم المدير غير صالح')
+            errors.append(pick('اسم مستخدم المدير غير صالح', 'The administrator user name is not valid'))
         if not a_name:
-            errors.append('اسم المدير مطلوب')
+            errors.append(pick('اسم المدير مطلوب', 'The administrator name is required'))
         if a_email and not is_valid_email(a_email):
-            errors.append('بريد المدير غير صالح')
+            errors.append(pick('بريد المدير غير صالح', 'The administrator email is not valid'))
         errors += password_problems(a_pw, a_user)
         if not errors:
             db.session.add(t)
@@ -133,7 +134,7 @@ def tenant_new():
                 db.session.add(UserRole(user_id=admin.id, role_id=role.id))
                 audit('tenant.created', 'tenant', t.id, actor='مدير عام: ' + g.superadmin.username)
                 db.session.commit()
-            flash('تم إنشاء المنظمة ومديرها؛ سيُطلب منه تغيير كلمة المرور عند أول دخول', 'success')
+            flash(pick('تم إنشاء المنظمة ومديرها؛ سيُطلب منه تغيير كلمة المرور عند أول دخول', 'The organization and its administrator were created; they must change the password at the first sign-in'), 'success')
             return redirect(url_for('super.tenants'))
         db.session.rollback()
     return render_template('super/tenant_form.html', t=t, errors=errors, new=True), \
@@ -154,7 +155,7 @@ def tenant_edit(tenant_id):
                 audit('tenant.updated', 'tenant', t.id, actor='مدير عام: ' + g.superadmin.username,
                       active=t.is_active, ocr_cloud=t.ocr_cloud_enabled)
                 db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(pick('تم الحفظ', 'Saved'), 'success')
             return redirect(url_for('super.tenants'))
         db.session.rollback()
         t = db.session.get(Tenant, tenant_id)
@@ -187,9 +188,9 @@ def tenant_user_password(tenant_id):
         pw = f.get('new_password') or ''
         problems = password_problems(pw, u.username)
         if pw != (f.get('new_password2') or ''):
-            problems.append('كلمتا المرور غير متطابقتين')
+            problems.append(pick('كلمتا المرور غير متطابقتين', 'The two passwords do not match'))
         if problems:
-            flash('لم تتغير كلمة المرور: ' + '، '.join(problems), 'danger')
+            flash(pick('لم تتغير كلمة المرور: ', 'The password was not changed: ') + pick('، ', ', ').join(problems), 'danger')
             return redirect(url_for('super.tenant_edit', tenant_id=t.id) + '#password')
         u.password_hash = hash_password(pw)
         u.is_active = True
@@ -199,5 +200,5 @@ def tenant_user_password(tenant_id):
         u.session_version = (u.session_version or 1) + 1
         audit('user.password_set_by_superadmin', 'user', u.id, actor='مدير عام: ' + g.superadmin.username)
         db.session.commit()
-        flash(f'تغيّرت كلمة مرور «{u.username}» وفُك قفل الحساب. الدخول من صفحة الدخول العادية.', 'success')
+        flash(pick(f'تغيّرت كلمة مرور «{u.username}» وفُك قفل الحساب. الدخول من صفحة الدخول العادية.', f'The password of "{u.username}" was changed and the account unlocked. Sign in from the normal sign-in page.'), 'success')
     return redirect(url_for('super.tenant_edit', tenant_id=t.id))

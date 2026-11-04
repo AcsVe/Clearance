@@ -16,6 +16,7 @@ from security import hash_password
 from utils.audit import audit
 from utils.helpers import is_valid_email
 from utils.tabular import read_table, to_records, parse_date, norm
+from utils.i18n import pick
 
 employees_bp = Blueprint('employees', __name__)
 
@@ -29,6 +30,7 @@ FIELDS = [
     ('hire_date', ['تاريخ التعيين', 'hire_date', 'hired']),
 ]
 FIELD_LABELS = ['الاسم', 'الرقم الوظيفي', 'البريد', 'الهاتف', 'القسم', 'المسمى الوظيفي', 'تاريخ التعيين']
+FIELD_LABELS_EN = ['name', 'number', 'email', 'phone', 'department', 'job_title', 'hire_date']   # also accepted on import
 
 
 def _get(emp_id):
@@ -68,7 +70,7 @@ def index():
                         .filter(Custody.status == 'handed', Custody.employee_id.isnot(None))
                         .group_by(Custody.employee_id).all())
     return render_template('employees/index.html', employees=emps, departments=_depts(),
-                           open_custody=open_custody, field_labels=FIELD_LABELS)
+                           open_custody=open_custody, field_labels=pick(FIELD_LABELS, FIELD_LABELS_EN))
 
 
 def _apply(emp, data):
@@ -77,11 +79,11 @@ def _apply(emp, data):
     number = (data.get('employee_number') or '').strip() or None
     email = (data.get('email') or '').strip() or None
     if not name:
-        errors.append('الاسم مطلوب')
+        errors.append(pick('الاسم مطلوب', 'The name is required'))
     if email and not is_valid_email(email):
-        errors.append(f'بريد غير صالح: {email}')
+        errors.append(pick(f'بريد غير صالح: {email}', f'Invalid email: {email}'))
     if number and Employee.query.filter(Employee.employee_number == number, Employee.id != (emp.id or 0)).first():
-        errors.append(f'الرقم الوظيفي {number} مستخدم لموظف آخر')
+        errors.append(pick(f'الرقم الوظيفي {number} مستخدم لموظف آخر', f'Employee number {number} is used by another employee'))
     if errors:
         return errors
     emp.full_name, emp.employee_number, emp.email = name, number, email
@@ -94,7 +96,7 @@ def _apply(emp, data):
     if did not in (None, ''):
         d = get_scoped(Department, int(did)) if str(did).isdigit() else None
         if d is None:
-            return ['القسم غير موجود']
+            return [pick('القسم غير موجود', 'The department does not exist')]
         emp.department_id = d.id
     elif 'department_id' in data:
         emp.department_id = None
@@ -117,7 +119,7 @@ def form(emp_id=None):
             db.session.flush()
             audit('employee.created' if not emp_id else 'employee.updated', 'employee', emp.id, name=emp.full_name)
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(pick('تم الحفظ', 'Saved'), 'success')
             return redirect(url_for('employees.index'))
         db.session.rollback()
         if not emp_id:
@@ -143,11 +145,11 @@ def import_list():
         flash(str(exc), 'danger')
         return redirect(url_for('employees.index'))
     except Exception:  # noqa: BLE001 — a damaged spreadsheet
-        flash('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم', 'danger')
+        flash(pick('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم', 'The file could not be read — make sure it is a valid Excel or CSV file'), 'danger')
         return redirect(url_for('employees.index'))
     records, _ = to_records(rows, FIELDS)
     if not records:
-        flash('لا توجد بيانات للاستيراد', 'warning')
+        flash(pick('لا توجد بيانات للاستيراد', 'There is nothing to import'), 'warning')
         return redirect(url_for('employees.index'))
     update = request.form.get('update') == '1'
     default_dept = request.form.get('department_id') or ''
@@ -156,7 +158,7 @@ def import_list():
     problems, unknown_depts = [], set()
     for i, rec in enumerate(records, 1):
         if not rec.get('full_name'):
-            problems.append(f'سطر {i}: بلا اسم')
+            problems.append(pick(f'سطر {i}: بلا اسم', f'Line {i}: no name'))
             continue
         emp = None
         if rec.get('employee_number'):
@@ -184,7 +186,7 @@ def import_list():
             data['notes'] = target.notes
         errs = _apply(target, data)
         if errs:
-            problems.append(f'سطر {i} ({rec.get("full_name")}): ' + '، '.join(errs))
+            problems.append(pick(f'سطر {i} ({rec.get("full_name")}): ', f'Line {i} ({rec.get("full_name")}): ') + pick('، ', ', ').join(errs))
             continue
         if is_new:
             db.session.add(target)
@@ -194,14 +196,14 @@ def import_list():
         db.session.flush()
     audit('employee.imported', added=added, updated=updated, skipped=skipped, problems=len(problems))
     db.session.commit()
-    msg = f'أُضيف {added}، حُدِّث {updated}، تُرك {skipped} (موجود مسبقًا)'
+    msg = pick(f'أُضيف {added}، حُدِّث {updated}، تُرك {skipped} (موجود مسبقًا)', f'Added {added}, updated {updated}, skipped {skipped} (already there)')
     flash(msg, 'success' if added or updated else 'warning')
     if unknown_depts:
-        flash('أقسام غير معروفة (أُضيف الموظفون بلا قسم): ' + '، '.join(sorted(unknown_depts)), 'warning')
+        flash(pick('أقسام غير معروفة (أُضيف الموظفون بلا قسم): ', 'Unknown departments (the employees were added without one): ') + pick('، ', ', ').join(sorted(unknown_depts)), 'warning')
     for p in problems[:15]:
         flash(p, 'danger')
     if len(problems) > 15:
-        flash(f'… و{len(problems) - 15} أخطاء أخرى', 'danger')
+        flash(pick(f'… و{len(problems) - 15} أخطاء أخرى', f'… and {len(problems) - 15} more errors'), 'danger')
     return redirect(url_for('employees.index'))
 
 
@@ -210,7 +212,7 @@ def import_list():
 def template():
     buf = io.StringIO()
     w = csv.writer(buf)
-    w.writerow(FIELD_LABELS)
+    w.writerow(pick(FIELD_LABELS, FIELD_LABELS_EN))
     w.writerow(['محمد أحمد', '1023', 'm.ahmad@example.org', '0790000000', 'تقنية المعلومات', 'فني', '2024-09-01'])
     return Response('﻿' + buf.getvalue(), mimetype='text/csv; charset=utf-8',
                     headers={'Content-Disposition': 'attachment; filename=employees_template.csv'})
@@ -248,7 +250,7 @@ def bulk():
     elif action == 'delete':
         for e in picked:
             if Custody.query.filter_by(employee_id=e.id, status='handed').first():
-                skipped.append(f'{e.full_name} (لديه عهد غير مسترجعة — أوقفه بدلاً من حذفه)')
+                skipped.append(pick(f'{e.full_name} (لديه عهد غير مسترجعة — أوقفه بدلاً من حذفه)', f'{e.full_name} (has custody not returned — deactivate instead)'))
                 continue
             audit('employee.deleted', 'employee', e.id, name=e.full_name)
             db.session.delete(e)
@@ -261,10 +263,10 @@ def bulk():
         created = []
         for e in picked:
             if e.user_id:
-                skipped.append(f'{e.full_name} (له حساب)')
+                skipped.append(pick(f'{e.full_name} (له حساب)', f'{e.full_name} (has an account)'))
                 continue
             if not e.email:
-                skipped.append(f'{e.full_name} (بلا بريد)')
+                skipped.append(pick(f'{e.full_name} (بلا بريد)', f'{e.full_name} (no email)'))
                 continue
             existing = User.query.filter(func.lower(User.email) == e.email.lower()).first()
             if existing:
@@ -287,15 +289,15 @@ def bulk():
             from blueprints.auth import _issue_reset
             failed = sum(1 for u in created if not _issue_reset(u, g.tenant, by_admin=True))
             if failed:
-                flash(f'تعذّر إرسال رابط كلمة المرور إلى {failed} — راجع سجل البريد', 'warning')
+                flash(pick(f'تعذّر إرسال رابط كلمة المرور إلى {failed} — راجع سجل البريد', f'The password link could not be sent to {failed} — see the mail log'), 'warning')
     else:
         abort(400)
     if action != 'accounts':
         audit(f'employee.bulk_{action}', count=done)
     db.session.commit()
-    verb = {'activate': 'فُعِّل', 'deactivate': 'أُوقف', 'move': 'نُقل', 'delete': 'حُذف',
-            'accounts': 'حسابات أُنشئت أو رُبطت'}[action]
-    msg = f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else '')
+    verb = {'activate': pick('فُعِّل', 'Activated'), 'deactivate': pick('أُوقف', 'Deactivated'), 'move': pick('نُقل', 'Moved'), 'delete': pick('حُذف', 'Deleted'),
+            'accounts': pick('حسابات أُنشئت أو رُبطت', 'Accounts created or linked')}[action]
+    msg = f'{verb}: {done}' + ((pick(' — تُرك: ', ' — skipped: ') + pick('، ', ', ').join(skipped[:10])) if skipped else '')
     flash(msg, 'success' if done else 'warning')
     return redirect(url_for('employees.index'))
 

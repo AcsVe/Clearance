@@ -1,36 +1,36 @@
 {% extends 'base.html' %}
 {% from 'clearance/_macros.html' import form_badge, progress with context %}
-{% block title %}نماذج براءة الذمة{% endblock %}
+{% block title %}{{ L('نماذج براءة الذمة', 'Clearance forms') }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>نماذج براءة الذمة <span class="count-pill" data-count-for="t-forms">{{ forms|length }}</span></h1>
-  {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new') }}">+ نموذج جديد</a>{% endif %}
+  <h1>{{ L('نماذج براءة الذمة', 'Clearance forms') }} <span class="count-pill" data-count-for="t-forms">{{ forms|length }}</span></h1>
+  {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new') }}">{{ L('+ نموذج جديد', '+ New form') }}</a>{% endif %}
 </div>
-<div class="list-tools"><input type="search" data-list-search="t-forms" placeholder="بحث بالاسم أو الرقم المرجعي أو القسم" aria-label="بحث"></div>
+<div class="list-tools"><input type="search" data-list-search="t-forms" placeholder="{{ L('بحث بالاسم أو الرقم المرجعي أو القسم', 'Search by name, reference or department') }}" aria-label="{{ L('بحث', 'Search') }}"></div>
 {% if has_perm('clearance.manage') %}
 <form class="bulk-bar" method="post" action="{{ url_for('clearance.bulk') }}" data-bulk-for="t-forms">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b></span>
-  <button class="btn small secondary" name="action" value="remind">إرسال تذكير</button>
-  <button class="btn small secondary" name="action" value="closed" data-confirm="إقفال {n} من النماذج؟ لن تتمكن الأقسام من التعديل بعدها.">إقفال</button>
-  <button class="btn small secondary" name="action" value="cancelled" data-confirm="إلغاء {n} من النماذج؟">إلغاء</button>
-  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من النماذج نهائيًا؟ يُحذف فقط الملغي أو ما لم يوقّعه أي قسم.">حذف</button>
+  <span>{{ L('المحدد:', 'Selected:') }} <b data-selected-count>0</b></span>
+  <button class="btn small secondary" name="action" value="remind">{{ L('إرسال تذكير', 'Send a reminder') }}</button>
+  <button class="btn small secondary" name="action" value="closed" data-confirm="{{ L('إقفال {n} من النماذج؟ لن تتمكن الأقسام من التعديل بعدها.', 'Close {n} form(s)? Departments will not be able to change them afterwards.') }}">{{ L('إقفال', 'Close') }}</button>
+  <button class="btn small secondary" name="action" value="cancelled" data-confirm="{{ L('إلغاء {n} من النماذج؟', 'Cancel {n} form(s)?') }}">{{ L('إلغاء', 'Cancel') }}</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="{{ L('حذف {n} من النماذج نهائيًا؟ يُحذف فقط الملغي أو ما لم يوقّعه أي قسم.', 'Permanently delete {n} form(s)? Only cancelled forms or forms no department has signed are deleted.') }}">{{ L('حذف', 'Delete') }}</button>
 </form>
 {% endif %}
 <div class="card table-wrap"><table data-table id="t-forms">
-<thead><tr>{% if has_perm('clearance.manage') %}<th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>{% endif %}
-<th data-filter="text">الرقم المرجعي</th><th data-filter="text">الموظف</th><th data-filter="text">الرقم الوظيفي</th><th data-filter="select">القسم</th>
-<th data-sort="date">تاريخ الاستقالة</th><th data-sort="date">تاريخ الإنشاء</th><th data-filter="select">الحالة</th><th data-sort="num">الإنجاز</th><th data-filter="select">معلق لدى</th><th data-nosort></th></tr></thead>
+<thead><tr>{% if has_perm('clearance.manage') %}<th class="sel"><input type="checkbox" data-select-all aria-label="{{ L('تحديد الكل', 'Select all') }}"></th>{% endif %}
+<th data-filter="text">{{ L('الرقم المرجعي', 'Reference') }}</th><th data-filter="text">{{ L('الموظف', 'Employee') }}</th><th data-filter="text">{{ L('الرقم الوظيفي', 'Employee number') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th>
+<th data-sort="date">{{ L('تاريخ الاستقالة', 'Resignation date') }}</th><th data-sort="date">{{ L('تاريخ الإنشاء', 'Created') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-sort="num">{{ L('الإنجاز', 'Progress') }}</th><th data-filter="select">{{ L('معلق لدى', 'On hold at') }}</th><th data-nosort></th></tr></thead>
 <tbody>
 {% for f in forms %}
-<tr data-id="{{ f.id }}">{% if has_perm('clearance.manage') %}<td class="sel"><input type="checkbox" data-row-select value="{{ f.id }}" aria-label="تحديد {{ f.ref_code }}"></td>{% endif %}
+<tr data-id="{{ f.id }}">{% if has_perm('clearance.manage') %}<td class="sel"><input type="checkbox" data-row-select value="{{ f.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ f.ref_code }}"></td>{% endif %}
 <td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td>
 <td>{{ f.employee_name }}</td><td class="mono">{{ f.employee_number or '—' }}</td><td>{{ f.department_name or '—' }}</td>
 <td class="mono">{{ f.resign_date or '—' }}</td><td class="mono" data-value="{{ f.created_at.isoformat() }}">{{ (f.created_at|local('%Y-%m-%d')) }}</td>
-<td data-value="{{ 'تمت التسوية' if f.settled else f.status_label }}">{{ form_badge(f) }}</td>
+<td data-value="{{ L('تمت التسوية', 'Settled') if f.settled else f.status_label }}">{{ form_badge(f) }}</td>
 <td data-value="{{ f.responses|length - f.pending|length }}">{{ progress(f) }}</td>
-<td data-value="{{ 'معلق' if f.held else ('بانتظار التوقيع' if f.pending else '—') }}">{% for r in f.held %}<span class="badge bad">{{ r.department.name }}</span> {% else %}—{% endfor %}</td>
-<td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=f.id) }}">فتح</a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد نماذج بعد.</td></tr>{% endfor %}
+<td data-value="{{ L('معلق', 'On hold') if f.held else (L('بانتظار التوقيع', 'Awaiting signature') if f.pending else '—') }}">{% for r in f.held %}<span class="badge bad">{{ r.department.name }}</span> {% else %}—{% endfor %}</td>
+<td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=f.id) }}">{{ L('فتح', 'Open') }}</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">{{ L('لا توجد نماذج بعد.', 'No forms yet.') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

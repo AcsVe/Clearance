@@ -24,6 +24,39 @@ PERMISSIONS = {
     'self.view':            ('عرض بياناته وعهده فقط', 'عام'),
 }
 
+# The same catalogue in English (shown when the interface is in English; the stored data stays Arabic).
+PERMISSIONS_EN = {
+    'clearance.create':     ('Create a clearance form', 'Clearance'),
+    'clearance.view_all':   ('See every clearance form', 'Clearance'),
+    'clearance.manage':     ('Cancel / close / remind / send to Finance', 'Clearance'),
+    'clearance.sign':       ('Sign clearances for own department only', 'Clearance'),
+    'finance.settle':       ('Financial settlement', 'Finance'),
+    'custody.manage':       ('Hand over and take back own department custody only', 'Custody'),
+    'custody.view_all':     ('See custody of every department', 'Custody'),
+    'custody.manage_all':   ('Hand over and take back custody of any department', 'Custody'),
+    'custody.import':       ('Import paper custody records for own department (photo reading)', 'Custody'),
+    'reports.view':         ('See reports', 'Reports'),
+    'employees.manage':     ('Manage the employee register (add, import, edit)', 'Employees'),
+    'users.manage':         ('Manage users and roles', 'Administration'),
+    'departments.manage':   ('Manage departments', 'Administration'),
+    'settings.manage':      ('Organization settings', 'Administration'),
+    'audit.view':           ('Audit log', 'Administration'),
+    'email_log.view':       ('Mail log and errors', 'Administration'),
+    'self.view':            ('See own data and custody only', 'General'),
+}
+DEFAULT_ROLES_EN = {'admin': ('System administrator', 'Every permission'),
+                    'hr': ('Human resources', 'Create and follow clearance forms'),
+                    'finance': ('Finance', 'Financial settlement of forms on hold'),
+                    'dept_manager': ('Department manager', 'Sign for and manage own department custody'),
+                    'employee': ('Employee / recipient', 'View only')}
+
+
+def permissions_local():
+    """code -> (label, group) in the interface language."""
+    from utils.i18n import lang
+    return PERMISSIONS_EN if lang() == 'en' else PERMISSIONS
+
+
 DEFAULT_ROLES = [
     ('admin', 'مدير النظام', 'كامل الصلاحيات', list(PERMISSIONS)),
     ('hr', 'شؤون الموظفين', 'إنشاء ومتابعة نماذج براءة الذمة',

@@ -1,51 +1,51 @@
 {% extends 'base.html' %}
-{% block title %}نموذج براءة ذمة جديد{% endblock %}
+{% block title %}{{ L('نموذج براءة ذمة جديد', 'New clearance form') }}{% endblock %}
 {% block content %}
-<h1>نموذج براءة ذمة جديد</h1>
+<h1>{{ L('نموذج براءة ذمة جديد', 'New clearance form') }}</h1>
 {% for e in errors %}<div class="alert danger">{{ e }}</div>{% endfor %}
 {% if picked %}
 <div class="card">
   <p><b>{{ picked.full_name }}</b>{% if picked.employee_number %} — <span class="mono">{{ picked.employee_number }}</span>{% endif %}
-    — <a href="{{ url_for('employees.form', emp_id=picked.id) }}">بطاقة الموظف</a></p>
-  {% for f in open_forms %}<div class="alert warn">له نموذج مفتوح: <a class="mono" href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a> ({{ f.status_label }})</div>{% endfor %}
+    — <a href="{{ url_for('employees.form', emp_id=picked.id) }}">{{ L('بطاقة الموظف', 'Employee card') }}</a></p>
+  {% for f in open_forms %}<div class="alert warn">{{ L('له نموذج مفتوح:', 'Has an open form:') }} <a class="mono" href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a> ({{ f.status_label }})</div>{% endfor %}
   {% if open_custody %}
-  <p>عهد غير مسترجعة عليه ({{ open_custody|length }}) — تظهر لكل قسم في صفحة التوقيع:</p>
+  <p>{{ L('عهد غير مسترجعة عليه (', 'Custody not yet returned (') }}{{ open_custody|length }}{{ L(') — تظهر لكل قسم في صفحة التوقيع:', ') — shown to each department on the signing page:') }}</p>
   <div class="table-wrap"><table data-table id="t-new-cust">
-  <thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th></tr></thead>
+  <thead><tr><th data-filter="text">{{ L('العهدة', 'Item') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th><th data-sort="date">{{ L('تاريخ التسليم', 'Handed on') }}</th></tr></thead>
   <tbody>{% for c in open_custody %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}{% if c.serial_no %} <small class="mono muted">{{ c.serial_no }}</small>{% endif %}</td>
   <td>{{ c.department.name }}</td><td class="mono">{{ c.handed_at or '—' }}</td></tr>{% endfor %}</tbody></table></div>
-  {% else %}<p class="muted">لا توجد عليه عهد غير مسترجعة.</p>{% endif %}
+  {% else %}<p class="muted">{{ L('لا توجد عليه عهد غير مسترجعة.', 'No custody left to return.') }}</p>{% endif %}
 </div>
 {% endif %}
 <form method="post" class="card" id="new-clearance">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الموظف من السجل</label>
+    <div><label>{{ L('الموظف من السجل', 'Employee from the register') }}</label>
       <select name="employee_id" data-employee-picker>
-        <option value="">— اختر أو اكتب البيانات يدويًا —</option>
+        <option value="">{{ L('— اختر أو اكتب البيانات يدويًا —', '— choose, or type the details by hand —') }}</option>
         {% for e in employees %}<option value="{{ e.id }}" {% if v.employee_id == e.id|string %}selected{% endif %}
           data-name="{{ e.full_name }}" data-number="{{ e.employee_number or '' }}" data-email="{{ e.email or '' }}"
           data-dept="{{ e.department.name if e.department else '' }}" data-job="{{ e.job_title or '' }}">{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}
       </select>
-      <p class="hint">غير موجود؟ <a href="{{ url_for('employees.index') }}">أضفه إلى سجل الموظفين</a> أو اكتب بياناته هنا.</p></div>
-    <div><label>اسم الموظف *</label><input type="text" name="employee_name" value="{{ v.employee_name or '' }}"></div>
-    <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" value="{{ v.employee_number or '' }}" dir="ltr"></div>
+      <p class="hint">{{ L('غير موجود؟', 'Not listed?') }} <a href="{{ url_for('employees.index') }}">{{ L('أضفه إلى سجل الموظفين', 'Add them to the employee register') }}</a> {{ L('أو اكتب بياناته هنا.', 'or type their details here.') }}</p></div>
+    <div><label>{{ L('اسم الموظف *', 'Employee name *') }}</label><input type="text" name="employee_name" value="{{ v.employee_name or '' }}"></div>
+    <div><label>{{ L('الرقم الوظيفي', 'Employee number') }}</label><input type="text" name="employee_number" value="{{ v.employee_number or '' }}" dir="ltr"></div>
   </div>
   <div class="row">
-    <div><label>البريد الإلكتروني للموظف</label><input type="email" name="employee_email" value="{{ v.employee_email or '' }}" dir="ltr"></div>
-    <div><label>قسم الموظف</label><input type="text" name="department_name" value="{{ v.department_name or '' }}"></div>
-    <div><label>المسمى الوظيفي</label><input type="text" name="job_title" value="{{ v.job_title or '' }}"></div>
-    <div><label>تاريخ الاستقالة</label><input type="date" name="resign_date" value="{{ v.resign_date or '' }}"></div>
+    <div><label>{{ L('البريد الإلكتروني للموظف', 'Employee email') }}</label><input type="email" name="employee_email" value="{{ v.employee_email or '' }}" dir="ltr"></div>
+    <div><label>{{ L('قسم الموظف', 'Employee department') }}</label><input type="text" name="department_name" value="{{ v.department_name or '' }}"></div>
+    <div><label>{{ L('المسمى الوظيفي', 'Job title') }}</label><input type="text" name="job_title" value="{{ v.job_title or '' }}"></div>
+    <div><label>{{ L('تاريخ الاستقالة', 'Resignation date') }}</label><input type="date" name="resign_date" value="{{ v.resign_date or '' }}"></div>
   </div>
-  <label>الأقسام المطلوب توقيعها</label>
+  <label>{{ L('الأقسام المطلوب توقيعها', 'Departments that must sign') }}</label>
   <div class="checks dept-checks">
     {% for d in departments %}<label><input type="checkbox" name="departments" value="{{ d.id }}"
       {% if not v or d.id|string in request.form.getlist('departments') or request.method == 'GET' %}checked{% endif %}>
-      {{ d.icon }} {{ d.name }}{% if d.dept_type != 'normal' %} <span class="badge">{{ 'شؤون الموظفين' if d.dept_type == 'HR' else 'المحاسبة' }}</span>{% elif not d.emails %} <span class="badge warn">بلا بريد</span>{% endif %}</label>{% endfor %}
+      {{ d.icon }} {{ d.name }}{% if d.dept_type != 'normal' %} <span class="badge">{{ L('شؤون الموظفين', 'Human resources') if d.dept_type == 'HR' else L('المحاسبة', 'Finance') }}</span>{% elif not d.emails %} <span class="badge warn">{{ L('بلا بريد', 'No email') }}</span>{% endif %}</label>{% endfor %}
   </div>
-  <p class="hint">يصل كل قسم عادي بريدٌ برابط التوقيع الخاص به. قسما شؤون الموظفين والمحاسبة يوقّعان من داخل النظام.</p>
-  {% if v.dup_warning %}<div class="checks"><label><input type="checkbox" name="allow_duplicate" value="1"> إنشاء نموذج آخر رغم وجود نموذج مفتوح لهذا الموظف</label></div>{% endif %}
-  <button class="btn" type="submit">إنشاء النموذج وإرسال الإشعارات</button>
-  <a class="btn secondary" href="{{ url_for('clearance.index') }}">إلغاء</a>
+  <p class="hint">{{ L('يصل كل قسم عادي بريدٌ برابط التوقيع الخاص به. قسما شؤون الموظفين والمحاسبة يوقّعان من داخل النظام.', 'Each regular department receives an email with its own signing link. HR and Finance sign inside the system.') }}</p>
+  {% if v.dup_warning %}<div class="checks"><label><input type="checkbox" name="allow_duplicate" value="1"> {{ L('إنشاء نموذج آخر رغم وجود نموذج مفتوح لهذا الموظف', 'Create another form although this employee has an open one') }}</label></div>{% endif %}
+  <button class="btn" type="submit">{{ L('إنشاء النموذج وإرسال الإشعارات', 'Create the form and send the notifications') }}</button>
+  <a class="btn secondary" href="{{ url_for('clearance.index') }}">{{ L('إلغاء', 'Cancel') }}</a>
 </form>
 {% endblock %}

@@ -95,7 +95,8 @@ def test_email_failure_is_logged_and_visible(app, two_tenants):
     login(c, 'admin', org='a')
     r = c.post(f"/admin/users/{t['emp_a']}/action", data={'action': 'send_reset'},
                follow_redirects=True)
-    assert 'فشل الإرسال' in r.get_data(as_text=True)
+    page = r.get_data(as_text=True)
+    assert 'تعذّر الإرسال' in page and 'MS_' not in page      # a plain message; the details stay in the mail log
     with tenant_context(t['a']):
         log = EmailLog.query.one()
         assert log.status == 'failed' and 'MS_' in log.error

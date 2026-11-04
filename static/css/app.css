@@ -317,3 +317,9 @@ small{font-size:.86rem}
 .inline-filter select{min-width:180px}
 .pager{display:flex;gap:8px}
 .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
+/* مبدّل اللغة */
+.lang-switch{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 13px;border-radius:20px;font-weight:800;font-size:.86rem;
+  background:var(--primary);color:#fff;border:1px solid var(--primary);box-shadow:0 2px 6px rgba(12,103,236,.25);white-space:nowrap;text-decoration:none}
+.lang-switch:hover{background:var(--primary-dark,#0847B0);color:#fff;text-decoration:none}
+.auth-card .auth-lang .lang-switch{height:32px;padding:0 11px;font-size:.84rem}
+@media (max-width:640px){.lang-switch{padding:0 10px}}

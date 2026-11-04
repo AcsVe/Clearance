@@ -1,50 +1,50 @@
 {% extends 'base.html' %}
-{% block title %}الإعدادات{% endblock %}
+{% block title %}{{ L('الإعدادات', 'Settings') }}{% endblock %}
 {% block content %}
-<h1>إعدادات المنظمة</h1>
+<h1>{{ L('إعدادات المنظمة', 'Organization settings') }}</h1>
 <form method="post" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <div class="card"><h2><i class="fa-solid fa-building" aria-hidden="true"></i> الهوية</h2>
+  <div class="card"><h2><i class="fa-solid fa-building" aria-hidden="true"></i> {{ L('الهوية', 'Identity') }}</h2>
   <div class="row">
-    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required>
-      <p class="hint">الاسم الطويل يظهر تحت الشعار على عدة أسطر.</p></div>
-    <div><label>الاسم بالإنجليزية</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>اللون الأساسي</label><input type="color" name="accent_color" value="{{ t.accent_color }}">
-      <p class="hint">الافتراضي: <span class="mono">#0C67EC</span></p></div>
+    <div><label>{{ L('الاسم بالعربية', 'Name in Arabic') }}</label><input type="text" name="name_ar" value="{{ t.name_ar }}" required>
+      <p class="hint">{{ L('الاسم الطويل يظهر تحت الشعار على عدة أسطر.', 'A long name shows under the logo on several lines.') }}</p></div>
+    <div><label>{{ L('الاسم بالإنجليزية', 'Name in English') }}</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
+    <div><label>{{ L('اللون الأساسي', 'Main colour') }}</label><input type="color" name="accent_color" value="{{ t.accent_color }}">
+      <p class="hint">{{ L('الافتراضي:', 'Default:') }} <span class="mono">#0C67EC</span></p></div>
   </div>
   <div class="row">
-    {% for which, text in (('primary', 'الشعار الأول'), ('secondary', 'الشعار الثاني')) %}
+    {% for which, text in (('primary', L('الشعار الأول', 'First logo')), ('secondary', L('الشعار الثاني', 'Second logo'))) %}
     <div><label>{{ text }}</label>
       <div class="logo-pick">
         {% if t['logo_' ~ which] %}<img src="{{ url_for('tenant_logo', tenant_id=t.id, which=which) }}" alt="">
         {% elif which == 'primary' %}<img src="{{ url_for('static', filename='brand/system.svg') }}" alt="">{% else %}<span class="logo-empty"><i class="fa-regular fa-image" aria-hidden="true"></i></span>{% endif %}
         <div><input type="file" name="logo_{{ which }}" accept="image/png,image/jpeg,image/webp">
-        {% if t['logo_' ~ which] %}<label class="checks"><input type="checkbox" name="remove_logo_{{ which }}" value="1"> إزالة الشعار</label>{% endif %}</div>
+        {% if t['logo_' ~ which] %}<label class="checks"><input type="checkbox" name="remove_logo_{{ which }}" value="1"> {{ L('إزالة الشعار', 'Remove the logo') }}</label>{% endif %}</div>
       </div>
-      <p class="hint">{% if which == 'primary' %}إلى أن يُرفع شعار تظهر أيقونة النظام.{% else %}يظهر في صفحة الدخول وفي النماذج والإيصالات المطبوعة.{% endif %}</p></div>
+      <p class="hint">{% if which == 'primary' %}{{ L('إلى أن يُرفع شعار تظهر أيقونة النظام.', 'Until a logo is uploaded, the system icon is shown.') }}{% else %}{{ L('يظهر في صفحة الدخول وفي النماذج والإيصالات المطبوعة.', 'Shown on the sign-in page and on printed forms and receipts.') }}{% endif %}</p></div>
     {% endfor %}
   </div></div>
-  <div class="card"><h2><i class="fa-solid fa-envelope" aria-hidden="true"></i> البريد والطباعة</h2>
+  <div class="card"><h2><i class="fa-solid fa-envelope" aria-hidden="true"></i> {{ L('البريد والطباعة', 'Mail and printing') }}</h2>
   <div class="row">
-    <div><label>بريد المرسل (اختياري)</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
-      <p class="hint">إن تُرك فارغاً يُستخدم بريد المرسل الافتراضي.</p></div>
-    <div><label>تذييل البريد</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
-    <div><label>تذييل نموذج الطباعة</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
+    <div><label>{{ L('بريد المرسل (اختياري)', 'Sender mailbox (optional)') }}</label><input type="email" name="mail_sender" value="{{ t.mail_sender or '' }}" dir="ltr">
+      <p class="hint">{{ L('إن تُرك فارغاً يُستخدم بريد المرسل الافتراضي.', 'If left empty, the default sender mailbox is used.') }}</p></div>
+    <div><label>{{ L('تذييل البريد', 'Email footer') }}</label><input type="text" name="email_footer" value="{{ t.email_footer or '' }}"></div>
+    <div><label>{{ L('تذييل نموذج الطباعة', 'Printed form footer') }}</label><input type="text" name="form_footer" value="{{ t.form_footer or '' }}"></div>
   </div>
   <div class="graph-status">
-    <b><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> إرسال البريد الإلكتروني</b>
-    {% if graph.ready %}<span class="badge ok">جاهز</span>{% else %}<span class="badge bad">غير جاهز</span>{% endif %}
-    <span class="muted">المرسل: <span class="mono">{{ graph.sender or '—' }}</span></span>
-    {% if not graph.ready %}<p class="hint">لا تُرسَل رسائل البريد حالياً. تواصل مع مسؤول تقنية المعلومات لربط حساب بريد المؤسسة.</p>{% endif %}
+    <b><i class="fa-solid fa-paper-plane" aria-hidden="true"></i> {{ L('إرسال البريد الإلكتروني', 'Sending email') }}</b>
+    {% if graph.ready %}<span class="badge ok">{{ L('جاهز', 'Ready') }}</span>{% else %}<span class="badge bad">{{ L('غير جاهز', 'Not ready') }}</span>{% endif %}
+    <span class="muted">{{ L('المرسل:', 'Sender:') }} <span class="mono">{{ graph.sender or '—' }}</span></span>
+    {% if not graph.ready %}<p class="hint">{{ L('لا تُرسَل رسائل البريد حالياً. تواصل مع مسؤول تقنية المعلومات لربط حساب بريد المؤسسة.', 'Emails are not being sent at the moment. Ask the IT officer to connect the organization mail account.') }}</p>{% endif %}
   </div></div>
-  <p style="margin-bottom:22px"><button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> حفظ</button></p>
+  <p style="margin-bottom:22px"><button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ L('حفظ', 'Save') }}</button></p>
 </form>
 
-<div class="card"><h2><i class="fa-solid fa-file-import" aria-hidden="true"></i> استيراد من Google Sheet القديم</h2><form method="post" action="{{ url_for('admin.import_sheet') }}" enctype="multipart/form-data">
+<div class="card"><h2><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ L('استيراد من Google Sheet القديم', 'Import from the old Google Sheet') }}</h2><form method="post" action="{{ url_for('admin.import_sheet') }}" enctype="multipart/form-data">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <p class="hint">في Google Sheets: ملف ← تنزيل ← Microsoft Excel ‏(.xlsx)، ثم ارفع الملف هنا. تُستورد أوراق «الاقسام» و«النماذج» و«الردود» و«العهد»،
-  ويُضاف موظفو النماذج إلى سجل الموظفين (موقوفين). إعادة الاستيراد لا تكرر ما استُورد، ولا تُرسل أي رسائل بريد.</p>
+  <p class="hint">{{ L('في Google Sheets: ملف ← تنزيل ← Microsoft Excel ‏(.xlsx)، ثم ارفع الملف هنا. تُستورد أوراق «الاقسام» و«النماذج» و«الردود» و«العهد»،', 'In Google Sheets: File → Download → Microsoft Excel (.xlsx), then upload the file here. The sheets of departments, forms, responses and custody are imported,') }}
+  {{ L('ويُضاف موظفو النماذج إلى سجل الموظفين (موقوفين). إعادة الاستيراد لا تكرر ما استُورد، ولا تُرسل أي رسائل بريد.', 'and the employees in the forms are added to the register (as inactive). Importing again repeats nothing and sends no email.') }}</p>
   <div class="row"><div><input type="file" name="file" accept=".xlsx" required></div></div>
-  <button class="btn" type="submit" data-confirm="استيراد بيانات الملف إلى هذه المنظمة؟"><i class="fa-solid fa-file-import" aria-hidden="true"></i> استيراد</button>
+  <button class="btn" type="submit" data-confirm="{{ L('استيراد بيانات الملف إلى هذه المنظمة؟', 'Import the file data into this organization?') }}"><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ L('استيراد', 'Import') }}</button>
 </form></div>
 {% endblock %}

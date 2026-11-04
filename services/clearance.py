@@ -12,6 +12,7 @@ from tenancy import current_tenant_id
 from utils.audit import audit
 from utils.helpers import short_code
 from utils.mail import send_email
+from utils.i18n import pick
 
 NOTICE = 'emails/notice.html'
 
@@ -57,7 +58,7 @@ def create_form(*, employee=None, employee_name, employee_number=None, employee_
         depts = depts.filter(Department.id.in_(department_ids))
     depts = depts.order_by(Department.sort_order, Department.name).all()
     if not depts:
-        raise WorkflowError('لا توجد أقسام فعّالة لإرسال النموذج إليها — أضف الأقسام أولاً')
+        raise WorkflowError(pick('لا توجد أقسام فعّالة لإرسال النموذج إليها — أضف الأقسام أولاً', 'There are no active departments to send the form to — add departments first'))
     form = ClearanceForm(ref_code=new_ref_code(), employee_id=employee.id if employee else None,
                          employee_name=employee_name, employee_number=employee_number,
                          employee_email=employee_email, department_name=department_name, job_title=job_title,
@@ -121,16 +122,16 @@ def _mail_department(form, resp, reminder):
 def respond(resp, status, note, by_name, by_user=None):
     form = resp.form
     if form.status == 'closed':
-        raise WorkflowError('الملف مقفل من المحاسبة، لا يمكن التعديل')
+        raise WorkflowError(pick('الملف مقفل من المحاسبة، لا يمكن التعديل', 'Finance has closed the file; it cannot be changed'))
     if form.status == 'cancelled':
-        raise WorkflowError('هذا النموذج ملغي')
+        raise WorkflowError(pick('هذا النموذج ملغي', 'This form is cancelled'))
     if status not in ('cleared', 'held'):
-        raise WorkflowError('اختر الحالة: خالية الذمة أو معلق')
+        raise WorkflowError(pick('اختر الحالة: خالية الذمة أو معلق', 'Choose the status: cleared or on hold'))
     note = (note or '').strip()[:1000] or None
     if status == 'held' and not note:
-        raise WorkflowError('اكتب سبب التعليق (ما المطلوب من الموظف) في الملاحظات')
+        raise WorkflowError(pick('اكتب سبب التعليق (ما المطلوب من الموظف) في الملاحظات', 'Write the reason for the hold (what the employee must do) in the notes'))
     if not (by_name or '').strip():
-        raise WorkflowError('اكتب اسم الموقّع')
+        raise WorkflowError(pick('اكتب اسم الموقّع', 'Enter the signer name'))
     changed = resp.status != status or (resp.note or None) != note
     resp.status, resp.note = status, note
     resp.responded_at, resp.responded_by = utcnow(), by_name.strip()[:200]
@@ -174,7 +175,7 @@ def send_completion(form):
 # ───────────────────────────── HR actions ─────────────────────────────
 def remind(form):
     if form.status not in ('in_progress', 'completed'):
-        raise WorkflowError('لا يمكن التذكير لنموذج مقفل أو ملغي')
+        raise WorkflowError(pick('لا يمكن التذكير لنموذج مقفل أو ملغي', 'A closed or cancelled form cannot be reminded'))
     sent = 0
     for r in form.responses:
         if r.status == 'pending':
@@ -190,19 +191,19 @@ def remind(form):
 def set_status(form, status):
     if status == 'cancelled':
         if form.status == 'closed':
-            raise WorkflowError('لا يمكن إلغاء نموذج مقفل')
+            raise WorkflowError(pick('لا يمكن إلغاء نموذج مقفل', 'A closed form cannot be cancelled'))
         form.status, form.cancelled_at = 'cancelled', utcnow()
     elif status == 'closed':
         if form.status == 'cancelled':
-            raise WorkflowError('لا يمكن إقفال نموذج ملغي')
+            raise WorkflowError(pick('لا يمكن إقفال نموذج ملغي', 'A cancelled form cannot be closed'))
         form.status, form.closed_at = 'closed', utcnow()
     elif status == 'reopen':
         if form.settled:
-            raise WorkflowError('لا يمكن إعادة فتح نموذج تمت تسويته ماليًا')
+            raise WorkflowError(pick('لا يمكن إعادة فتح نموذج تمت تسويته ماليًا', 'A financially settled form cannot be reopened'))
         form.status = 'completed' if not form.pending else 'in_progress'
         form.closed_at = form.cancelled_at = None
     else:
-        raise WorkflowError('إجراء غير معروف')
+        raise WorkflowError(pick('إجراء غير معروف', 'Unknown action'))
     audit(f'clearance.{status}', 'clearance', form.id)
     db.session.commit()
 
@@ -210,10 +211,10 @@ def set_status(form, status):
 def send_to_finance(form, note):
     note = (note or '').strip()
     if not note:
-        raise WorkflowError('اكتب الملاحظة المرسلة إلى المحاسبة')
+        raise WorkflowError(pick('اكتب الملاحظة المرسلة إلى المحاسبة', 'Write the note to send to Finance'))
     fin = dept_of('Finance')
     if not fin or not fin.email_list:
-        raise WorkflowError('لا يوجد بريد لقسم المحاسبة — أضفه من «الأقسام»')
+        raise WorkflowError(pick('لا يوجد بريد لقسم المحاسبة — أضفه من «الأقسام»', 'The Finance department has no email — add it in "Departments"'))
     form.hr_note, form.sent_to_finance_at = note[:1000], utcnow()
     audit('clearance.sent_to_finance', 'clearance', form.id)
     db.session.commit()
@@ -228,9 +229,9 @@ def send_to_finance(form, note):
 
 def settle(form, note, by_name):
     if form.status == 'cancelled':
-        raise WorkflowError('النموذج ملغي')
+        raise WorkflowError(pick('النموذج ملغي', 'The form is cancelled'))
     if form.settled:
-        raise WorkflowError('تمت تسوية هذا النموذج مسبقًا')
+        raise WorkflowError(pick('تمت تسوية هذا النموذج مسبقًا', 'This form was already settled'))
     note = (note or '').strip()[:1000] or None
     form.status, form.closed_at = 'closed', utcnow()
     form.settled_at, form.settled_by, form.finance_note = utcnow(), by_name, note

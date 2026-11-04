@@ -1,23 +1,23 @@
 {% extends 'base.html' %}
-{% block title %}سجل التدقيق{% endblock %}
+{% block title %}{{ L('سجل التدقيق', 'Audit log') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>سجل التدقيق</h1>
-<form method="get" class="inline-filter"><label class="sr-only" for="grp">نوع العمليات</label>
-<select name="action" id="grp"><option value="">كل العمليات</option>
+<div class="toolbar"><h1>{{ L('سجل التدقيق', 'Audit log') }}</h1>
+<form method="get" class="inline-filter"><label class="sr-only" for="grp">{{ L('نوع العمليات', 'Kind of operation') }}</label>
+<select name="action" id="grp"><option value="">{{ L('كل العمليات', 'All operations') }}</option>
 {% for k, v in groups %}<option value="{{ k }}."{{ ' selected' if action == k ~ '.' }}>{{ v }}</option>{% endfor %}</select>
-<button class="btn secondary" type="submit">عرض</button></form></div>
-<p class="hint">سجل التدقيق للقراءة فقط ولا يمكن حذف سطوره. الأوقات بتوقيت عمّان. التصفية في الأعمدة تشمل الصفحة الحالية، واختيار نوع العمليات أعلاه يشمل السجل كله.</p>
+<button class="btn secondary" type="submit">{{ L('عرض', 'Show') }}</button></form></div>
+<p class="hint">{{ L('سجل التدقيق للقراءة فقط ولا يمكن حذف سطوره. الأوقات بتوقيت عمّان. التصفية في الأعمدة تشمل الصفحة الحالية، واختيار نوع العمليات أعلاه يشمل السجل كله.', 'The audit log is read-only; its lines cannot be deleted. Times are in Amman time. Column filters cover this page; choosing a kind of operation above searches the whole log.') }}</p>
 <div class="card table-wrap"><table data-table id="t-audit">
-<thead><tr><th data-filter="text">الوقت</th><th data-filter="select">المنفّذ</th><th data-filter="select">العملية</th><th data-filter="text">السجل</th><th data-filter="text" data-nosort>التفاصيل</th><th data-filter="text">عنوان الشبكة</th></tr></thead>
+<thead><tr><th data-filter="text">{{ L('الوقت', 'Time') }}</th><th data-filter="select">{{ L('المنفّذ', 'Done by') }}</th><th data-filter="select">{{ L('العملية', 'Operation') }}</th><th data-filter="text">{{ L('السجل', 'Record') }}</th><th data-filter="text" data-nosort>{{ L('التفاصيل', 'Details') }}</th><th data-filter="text">{{ L('عنوان الشبكة', 'Network address') }}</th></tr></thead>
 <tbody>{% for r in rows %}
-<tr><td class="nowrap">{{ r.created_at|local }}</td><td>{{ r.actor }}</td>
+<tr><td class="nowrap">{{ r.created_at|local }}</td><td>{{ audit_actor(r.actor) }}</td>
 <td>{{ audit_action(r.action) }}</td><td>{{ audit_entity(r.entity_type, r.entity_id) }}</td>
 <td>{% if r.details %}<ul class="kv">{% for k, v in audit_details(r.details) %}<li><b>{{ k }}:</b> <bdi>{{ v }}</bdi></li>{% endfor %}</ul>{% endif %}</td>
 <td class="mono">{{ r.ip_address or '' }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد سجلات</td></tr>{% endfor %}
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ L('لا توجد سجلات', 'No records') }}</td></tr>{% endfor %}
 </tbody></table></div>
 <div class="pager">
-{% if page > 1 %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page-1, action=action) }}">السابق</a>{% endif %}
-{% if has_next %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page+1, action=action) }}">التالي</a>{% endif %}
+{% if page > 1 %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page-1, action=action) }}">{{ L('السابق', 'Previous') }}</a>{% endif %}
+{% if has_next %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page+1, action=action) }}">{{ L('التالي', 'Next') }}</a>{% endif %}
 </div>
 {% endblock %}

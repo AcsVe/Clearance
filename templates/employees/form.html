@@ -1,51 +1,51 @@
 {% extends 'base.html' %}
-{% block title %}موظف{% endblock %}
+{% block title %}{{ L('موظف', 'Employee') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>الموظف: {{ e.full_name }}</h1>
+<div class="toolbar"><h1>{{ L('الموظف:', 'Employee:') }} {{ e.full_name }}</h1>
 {% if e.id %}<div class="actions-row">
-  {% if (has_perm('custody.manage') or has_perm('custody.manage_all')) %}<a class="btn secondary" href="{{ url_for('custody.index', employee_id=e.id, next=url_for('employees.form', emp_id=e.id)) }}"><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> تسليم عهدة له</a>{% endif %}
-  {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new', employee_id=e.id) }}"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> بدء براءة ذمة</a>{% endif %}
+  {% if (has_perm('custody.manage') or has_perm('custody.manage_all')) %}<a class="btn secondary" href="{{ url_for('custody.index', employee_id=e.id, next=url_for('employees.form', emp_id=e.id)) }}"><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> {{ L('تسليم عهدة له', 'Hand over an item to them') }}</a>{% endif %}
+  {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new', employee_id=e.id) }}"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> {{ L('بدء براءة ذمة', 'Start a clearance') }}</a>{% endif %}
 </div>{% endif %}</div>
 {% for err in errors %}<div class="alert danger">{{ err }}</div>{% endfor %}
 <div class="card"><form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الاسم الكامل *</label><input type="text" name="full_name" value="{{ e.full_name or '' }}" required></div>
-    <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" value="{{ e.employee_number or '' }}" dir="ltr"></div>
-    <div><label>البريد الإلكتروني</label><input type="email" name="email" value="{{ e.email or '' }}" dir="ltr"></div>
-    <div><label>الهاتف</label><input type="text" name="phone" value="{{ e.phone or '' }}" dir="ltr"></div>
+    <div><label>{{ L('الاسم الكامل *', 'Full name *') }}</label><input type="text" name="full_name" value="{{ e.full_name or '' }}" required></div>
+    <div><label>{{ L('الرقم الوظيفي', 'Employee number') }}</label><input type="text" name="employee_number" value="{{ e.employee_number or '' }}" dir="ltr"></div>
+    <div><label>{{ L('البريد الإلكتروني', 'Email') }}</label><input type="email" name="email" value="{{ e.email or '' }}" dir="ltr"></div>
+    <div><label>{{ L('الهاتف', 'Phone') }}</label><input type="text" name="phone" value="{{ e.phone or '' }}" dir="ltr"></div>
   </div>
   <div class="row">
-    <div><label>القسم</label><select name="department_id"><option value="">—</option>
-      {% for d in departments %}<option value="{{ d.id }}" {% if e.department_id == d.id %}selected{% endif %}>{{ d.icon }} {{ d.name }}{% if not d.is_active %} (متوقف){% endif %}</option>{% endfor %}</select></div>
-    <div><label>المسمى الوظيفي</label><input type="text" name="job_title" value="{{ e.job_title or '' }}"></div>
-    <div><label>تاريخ التعيين</label><input type="date" name="hire_date" value="{{ e.hire_date.isoformat() if e.hire_date else '' }}"></div>
-    <div><label>الحالة</label><select name="is_active">
-      <option value="1" {% if e.is_active %}selected{% endif %}>فعّال</option>
-      <option value="0" {% if not e.is_active %}selected{% endif %}>موقوف</option></select></div>
+    <div><label>{{ L('القسم', 'Department') }}</label><select name="department_id"><option value="">—</option>
+      {% for d in departments %}<option value="{{ d.id }}" {% if e.department_id == d.id %}selected{% endif %}>{{ d.icon }} {{ d.name }}{% if not d.is_active %} {{ L('(متوقف)', '(inactive)') }}{% endif %}</option>{% endfor %}</select></div>
+    <div><label>{{ L('المسمى الوظيفي', 'Job title') }}</label><input type="text" name="job_title" value="{{ e.job_title or '' }}"></div>
+    <div><label>{{ L('تاريخ التعيين', 'Hiring date') }}</label><input type="date" name="hire_date" value="{{ e.hire_date.isoformat() if e.hire_date else '' }}"></div>
+    <div><label>{{ L('الحالة', 'Status') }}</label><select name="is_active">
+      <option value="1" {% if e.is_active %}selected{% endif %}>{{ L('فعّال', 'Active') }}</option>
+      <option value="0" {% if not e.is_active %}selected{% endif %}>{{ L('موقوف', 'Inactive') }}</option></select></div>
   </div>
-  <div><label>ملاحظات</label><textarea name="notes" rows="2">{{ e.notes or '' }}</textarea></div>
-  <p class="hint">حساب الدخول: {% if e.user %}<b class="mono">{{ e.user.username }}</b>{% if has_perm('users.manage') %} — <a href="{{ url_for('admin.user_edit', user_id=e.user.id) }}">تعديل الحساب</a>{% endif %}{% else %}لا يوجد (يُنشأ من قائمة الموظفين ← «إنشاء حسابات دخول»){% endif %}</p>
-  <button class="btn" type="submit">حفظ</button>
-  <a class="btn secondary" href="{{ url_for('employees.index') }}">رجوع</a>
+  <div><label>{{ L('ملاحظات', 'Notes') }}</label><textarea name="notes" rows="2">{{ e.notes or '' }}</textarea></div>
+  <p class="hint">{{ L('حساب الدخول:', 'Sign-in account:') }} {% if e.user %}<b class="mono">{{ e.user.username }}</b>{% if has_perm('users.manage') %} — <a href="{{ url_for('admin.user_edit', user_id=e.user.id) }}">{{ L('تعديل الحساب', 'Edit the account') }}</a>{% endif %}{% else %}{{ L('لا يوجد (يُنشأ من قائمة الموظفين ← «إنشاء حسابات دخول»)', 'None (created from the employee list → "Create sign-in accounts")') }}{% endif %}</p>
+  <button class="btn" type="submit">{{ L('حفظ', 'Save') }}</button>
+  <a class="btn secondary" href="{{ url_for('employees.index') }}">{{ L('رجوع', 'Back') }}</a>
 </form></div>
 
 {% set can_cust = (has_perm('custody.manage') or has_perm('custody.manage_all')) %}
-<h2 style="margin:18px 0 10px">العهد <span class="count-pill" data-count-for="t-emp-cust">{{ custody|length }}</span></h2>
+<h2 style="margin:18px 0 10px">{{ L('العهد', 'Custody') }} <span class="count-pill" data-count-for="t-emp-cust">{{ custody|length }}</span></h2>
 {% if can_cust and custody %}
 <form class="bulk-bar" method="post" action="{{ url_for('custody.bulk') }}" data-bulk-for="t-emp-cust">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b> من {{ custody|length }}</span>
-  <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="مستلم الإرجاع" style="width:auto;padding:5px 8px">
-  <button class="btn small ok" name="action" value="return" data-confirm="تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟">استرجاع</button>
-  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print"><i class="fa-solid fa-print" aria-hidden="true"></i> طباعة الإيصالات</button>
+  <span>{{ L('المحدد:', 'Selected:') }} <b data-selected-count>0</b> {{ L('من', 'of') }} {{ custody|length }}</span>
+  <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="{{ L('مستلم الإرجاع', 'Received back by') }}" style="width:auto;padding:5px 8px">
+  <button class="btn small ok" name="action" value="return" data-confirm="{{ L('تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟', 'Record the return of {n} item(s) and send the notifications?') }}">{{ L('استرجاع', 'Return') }}</button>
+  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print"><i class="fa-solid fa-print" aria-hidden="true"></i> {{ L('طباعة الإيصالات', 'Print receipts') }}</button>
 </form>
 {% endif %}
 <div class="card table-wrap"><table data-table id="t-emp-cust">
-<thead><tr>{% if can_cust %}<th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>{% endif %}
-<th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
+<thead><tr>{% if can_cust %}<th class="sel"><input type="checkbox" data-select-all aria-label="{{ L('تحديد الكل', 'Select all') }}"></th>{% endif %}
+<th data-filter="text">{{ L('العهدة', 'Item') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th><th data-sort="date">{{ L('تاريخ التسليم', 'Handed on') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-sort="date">{{ L('تاريخ الإرجاع', 'Returned on') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for c in custody %}
-<tr data-id="{{ c.id }}">{% if can_cust %}<td class="sel"><input type="checkbox" data-row-select value="{{ c.id }}" aria-label="تحديد {{ c.item }}"></td>{% endif %}
+<tr data-id="{{ c.id }}">{% if can_cust %}<td class="sel"><input type="checkbox" data-row-select value="{{ c.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ c.item }}"></td>{% endif %}
 <td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}{% if c.serial_no %}<br><small class="mono muted">{{ c.serial_no }}</small>{% endif %}</td><td>{{ c.department.name }}</td>
 <td class="mono">{{ c.handed_at or '—' }}</td>
 <td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
@@ -53,14 +53,14 @@
 <td style="white-space:nowrap">
   {% if can_cust and c.status == 'handed' %}<form method="post" action="{{ url_for('custody.return_one', cid=c.id) }}" style="display:inline">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <button class="btn small ok" type="submit" data-confirm="تسجيل استرجاع «{{ c.item }}» وإرسال الإشعارات؟">استرجاع</button></form>{% endif %}
-  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال" aria-label="إيصال"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="7" class="muted">لا توجد عهد</td></tr>{% endfor %}</tbody></table></div>
+    <button class="btn small ok" type="submit" data-confirm="{{ L('تسجيل استرجاع «', 'Record the return of "') }}{{ c.item }}{{ L('» وإرسال الإشعارات؟', '" and send the notifications?') }}">{{ L('استرجاع', 'Return') }}</button></form>{% endif %}
+  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="{{ L('إيصال', 'Receipt') }}" aria-label="{{ L('إيصال', 'Receipt') }}"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="7" class="muted">{{ L('لا توجد عهد', 'No custody') }}</td></tr>{% endfor %}</tbody></table></div>
 
-<h2 style="margin:18px 0 10px">نماذج براءة الذمة</h2>
+<h2 style="margin:18px 0 10px">{{ L('نماذج براءة الذمة', 'Clearance forms') }}</h2>
 <div class="card table-wrap"><table data-table id="t-emp-forms">
-<thead><tr><th>الرقم المرجعي</th><th data-sort="date">تاريخ الإنشاء</th><th>الحالة</th></tr></thead>
+<thead><tr><th>{{ L('الرقم المرجعي', 'Reference') }}</th><th data-sort="date">{{ L('تاريخ الإنشاء', 'Created') }}</th><th>{{ L('الحالة', 'Status') }}</th></tr></thead>
 <tbody>{% for f in forms %}
 <tr><td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td><td class="mono">{{ (f.created_at|local('%Y-%m-%d')) }}</td><td>{{ f.status_label }}</td></tr>
-{% else %}<tr class="empty-row"><td colspan="3" class="muted">لا توجد نماذج</td></tr>{% endfor %}</tbody></table></div>
+{% else %}<tr class="empty-row"><td colspan="3" class="muted">{{ L('لا توجد نماذج', 'No forms') }}</td></tr>{% endfor %}</tbody></table></div>
 {% endblock %}

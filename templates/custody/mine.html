@@ -1,16 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}عهدي{% endblock %}
+{% block title %}{{ L('عهدي', 'My custody') }}{% endblock %}
 {% block content %}
-<h1>عهدي ونماذجي</h1>
+<h1>{{ L('عهدي ونماذجي', 'My custody and forms') }}</h1>
 <div class="card table-wrap"><table data-table id="t-mine">
-<thead><tr><th data-filter="text">العهدة</th><th data-filter="select">القسم</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
+<thead><tr><th data-filter="text">{{ L('العهدة', 'Item') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th><th data-sort="date">{{ L('تاريخ التسليم', 'Handed on') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-sort="date">{{ L('تاريخ الإرجاع', 'Returned on') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for c in rows %}<tr><td>{{ c.item }}{% if c.quantity > 1 %} × {{ c.quantity }}{% endif %}</td><td>{{ c.department.name }}</td>
 <td class="mono">{{ c.handed_at or '—' }}</td><td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
-<td class="mono">{{ c.returned_at or '—' }}</td><td><a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال" aria-label="إيصال"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد عهد مسجّلة باسمك.</td></tr>{% endfor %}</tbody></table></div>
+<td class="mono">{{ c.returned_at or '—' }}</td><td><a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="{{ L('إيصال', 'Receipt') }}" aria-label="{{ L('إيصال', 'Receipt') }}"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ L('لا توجد عهد مسجّلة باسمك.', 'No custody is recorded in your name.') }}</td></tr>{% endfor %}</tbody></table></div>
 {% if forms %}
-<h2 style="margin:16px 0 10px">نماذج براءة الذمة</h2>
-<div class="card table-wrap"><table><thead><tr><th>الرقم المرجعي</th><th>التاريخ</th><th>الحالة</th></tr></thead>
+<h2 style="margin:16px 0 10px">{{ L('نماذج براءة الذمة', 'Clearance forms') }}</h2>
+<div class="card table-wrap"><table><thead><tr><th>{{ L('الرقم المرجعي', 'Reference') }}</th><th>{{ L('التاريخ', 'Date') }}</th><th>{{ L('الحالة', 'Status') }}</th></tr></thead>
 <tbody>{% for f in forms %}<tr><td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td><td class="mono">{{ (f.created_at|local('%Y-%m-%d')) }}</td><td>{{ f.status_label }}</td></tr>{% endfor %}</tbody></table></div>
 {% endif %}
 {% endblock %}

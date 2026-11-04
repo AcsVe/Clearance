@@ -13,6 +13,7 @@ from utils.audit import audit
 from utils.helpers import short_code, split_emails, is_valid_email
 from utils.mail import send_email
 from utils.tabular import read_table, to_records, parse_date, norm
+from utils.i18n import pick
 
 custody_bp = Blueprint('custody', __name__)
 NOTICE = 'emails/notice.html'
@@ -34,6 +35,7 @@ FIELDS = [
     ('handed_by_email', ['بريد مسلم العهدة', 'بريد_مسلم_العهدة', 'handedByEmail']),
 ]
 FIELD_LABELS = ['العهدة', 'المستلم', 'بريد المستلم', 'القسم', 'مسلم العهدة', 'تاريخ التسليم', 'الكمية', 'الرقم التسلسلي']
+FIELD_LABELS_EN = ['item', 'recipient', 'email', 'department', 'handedBy', 'date', 'quantity', 'serial']   # also accepted on import
 
 
 def manageable_dept_ids(user):
@@ -127,7 +129,7 @@ def index():
                            back=_safe_next(request.args.get('next')),
                            employees=Employee.query.filter_by(is_active=True).order_by(Employee.full_name).all(),
                            can_manage=lambda c: manage_ids is None or c.department_id in manage_ids,
-                           may_add=manage_ids is None or bool(manage_ids), field_labels=FIELD_LABELS,
+                           may_add=manage_ids is None or bool(manage_ids), field_labels=pick(FIELD_LABELS, FIELD_LABELS_EN),
                            today=date.today().isoformat())
 
 
@@ -140,14 +142,14 @@ def _apply(c, f, user):
     did = f.get('department_id') or ''
     dept = get_scoped(Department, int(did)) if did.isdigit() else None
     if not item:
-        errors.append('اكتب اسم العهدة')
+        errors.append(pick('اكتب اسم العهدة', 'Enter the item name'))
     if not name:
-        errors.append('اختر المستلم من سجل الموظفين أو اكتب اسمه')
+        errors.append(pick('اختر المستلم من سجل الموظفين أو اكتب اسمه', 'Choose the recipient from the employee register or type their name'))
     if email and not is_valid_email(email):
-        errors.append('بريد المستلم غير صالح')
+        errors.append(pick('بريد المستلم غير صالح', 'The recipient email is not valid'))
     ids = manageable_dept_ids(user)
     if dept is None or (ids is not None and dept.id not in ids):
-        errors.append('اختر قسمًا من أقسامك')
+        errors.append(pick('اختر قسمًا من أقسامك', 'Choose one of your departments'))
     try:
         qty = max(int(f.get('quantity') or 1), 1)
     except ValueError:
@@ -180,7 +182,7 @@ def add():
     db.session.commit()
     if request.form.get('notify', '1') == '1':
         mail_handed(c)
-    flash(f'سُلّمت العهدة {c.ref_code}', 'success')
+    flash(pick(f'سُلّمت العهدة {c.ref_code}', f'Item {c.ref_code} was handed over'), 'success')
     from blueprints.auth import _safe_next
     return redirect(_safe_next(request.form.get('next')) or url_for('custody.index'))
 
@@ -201,7 +203,7 @@ def edit(cid):
         if not errors:
             audit('custody.updated', 'custody', c.id)
             db.session.commit()
-            flash('تم الحفظ', 'success')
+            flash(pick('تم الحفظ', 'Saved'), 'success')
             return redirect(url_for('custody.index'))
         db.session.rollback()
     return render_template('custody/edit.html', c=c, errors=errors, departments=_depts_for(user),
@@ -225,7 +227,7 @@ def bulk():
     done, skipped, returned = 0, [], []
     for c in Custody.query.filter(Custody.id.in_(_ids())).all():
         if not _can_manage(user, c):
-            skipped.append(f'{c.item} (ليست من أقسامك)')
+            skipped.append(pick(f'{c.item} (ليست من أقسامك)', f'{c.item} (not one of your departments)'))
             continue
         if act == 'return':
             if c.status == 'returned':
@@ -242,8 +244,8 @@ def bulk():
     db.session.commit()
     for c in returned:
         mail_returned(c, user.email)
-    verb = {'return': 'استُرجع', 'handed': 'أُعيد إلى «مسلمة»', 'delete': 'حُذف'}[act]
-    flash(f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else ''),
+    verb = {'return': pick('استُرجع', 'Returned'), 'handed': pick('أُعيد إلى «مسلمة»', 'Back to "handed over"'), 'delete': pick('حُذف', 'Deleted')}[act]
+    flash(f'{verb}: {done}' + ((pick(' — تُرك: ', ' — skipped: ') + pick('، ', ', ').join(skipped[:10])) if skipped else ''),
           'success' if done else 'warning')
     return redirect(request.referrer or url_for('custody.index'))
 
@@ -258,7 +260,7 @@ def return_one(cid):
         _return(c, request.form.get('returned_to'), current_user().email)
         db.session.commit()
         mail_returned(c, current_user().email)
-        flash('تم استرجاع العهدة وإرسال الإشعارات', 'success')
+        flash(pick('تم استرجاع العهدة وإرسال الإشعارات', 'The item was returned and the notifications were sent'), 'success')
     return redirect(request.referrer or url_for('custody.index'))
 
 
@@ -287,11 +289,11 @@ def import_list():
         flash(str(exc), 'danger')
         return redirect(url_for('custody.index'))
     except Exception:  # noqa: BLE001
-        flash('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم', 'danger')
+        flash(pick('تعذّرت قراءة الملف — تأكد أنه ملف Excel أو CSV سليم', 'The file could not be read — make sure it is a valid Excel or CSV file'), 'danger')
         return redirect(url_for('custody.index'))
     records, _ = to_records(rows, FIELDS)
     result = import_records(records, user, default_dept_id=request.form.get('department_id'))
-    flash(f'أُضيف {result["added"]}، تُرك {result["skipped"]} (موجود مسبقًا)', 'success' if result['added'] else 'warning')
+    flash(pick(f'أُضيف {result["added"]}، تُرك {result["skipped"]} (موجود مسبقًا)', f'Added {result["added"]}, skipped {result["skipped"]} (already there)'), 'success' if result['added'] else 'warning')
     for p in result['problems'][:15]:
         flash(p, 'danger')
     return redirect(url_for('custody.index'))
@@ -310,14 +312,14 @@ def import_records(records, user=None, default_dept_id=None):
     problems = []
     for i, r in enumerate(records, 1):
         if not r.get('item') or not r.get('recipient'):
-            problems.append(f'سطر {i}: العهدة والمستلم مطلوبان')
+            problems.append(pick(f'سطر {i}: العهدة والمستلم مطلوبان', f'Line {i}: the item and the recipient are required'))
             continue
         if r.get('ref_code') and Custody.query.filter_by(ref_code=r['ref_code']).first():
             skipped += 1
             continue
         dept = find_dept(r.get('department')) or default
         if dept is None or (ids is not None and dept.id not in ids):
-            problems.append(f'سطر {i} ({r["item"]}): القسم «{r.get("department") or "—"}» غير معروف أو ليس من أقسامك')
+            problems.append(pick(f'سطر {i} ({r["item"]}): القسم «{r.get("department") or "—"}» غير معروف أو ليس من أقسامك', f'Line {i} ({r["item"]}): the department "{r.get("department") or "—"}" is unknown or not yours'))
             continue
         email = (r.get('recipient_email') or '').strip() or None
         emp = (emps_by_email.get(email.lower()) if email else None) or emps_by_name.get(norm(r['recipient']))

@@ -91,6 +91,12 @@ class User(TenantScoped, db.Model):
 
 
 DEPARTMENT_TYPES = (('normal', 'قسم عادي'), ('HR', 'شؤون الموظفين'), ('Finance', 'المحاسبة'))
+DEPARTMENT_TYPES_EN = (('normal', 'Regular department'), ('HR', 'Human resources'), ('Finance', 'Finance'))
+
+
+def department_types_local():
+    from utils.i18n import lang
+    return DEPARTMENT_TYPES_EN if lang() == 'en' else DEPARTMENT_TYPES
 
 
 class Department(TenantScoped, db.Model):
@@ -136,6 +142,29 @@ class Role(TenantScoped, db.Model):
     @property
     def permission_codes(self):
         return {p.permission_code for p in self.permissions}
+
+    def _default(self):
+        from authz import DEFAULT_ROLES
+        return next((r for r in DEFAULT_ROLES if r[0] == self.key), None)
+
+    @property
+    def display_name(self):
+        """The English name of a built-in role whose name was never changed; otherwise the stored name."""
+        from utils.i18n import lang
+        d = self._default()
+        if lang() == 'en' and self.is_system and d and self.name == d[1]:
+            from authz import DEFAULT_ROLES_EN
+            return DEFAULT_ROLES_EN[self.key][0]
+        return self.name
+
+    @property
+    def display_description(self):
+        from utils.i18n import lang
+        d = self._default()
+        if lang() == 'en' and self.is_system and d and (self.description or '') == d[2]:
+            from authz import DEFAULT_ROLES_EN
+            return DEFAULT_ROLES_EN[self.key][1]
+        return self.description
 
 
 class RolePermission(TenantScoped, db.Model):

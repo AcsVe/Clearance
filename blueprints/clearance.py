@@ -11,6 +11,7 @@ from tenancy import tenant_bypass, set_current_tenant
 from utils.audit import audit
 from utils.tabular import parse_date
 from services import clearance as wf
+from utils.i18n import pick
 
 clearance_bp = Blueprint('clearance', __name__)
 
@@ -86,15 +87,15 @@ def new():
         resign = parse_date(request.form.get('resign_date'))
         chosen = {int(v) for v in request.form.getlist('departments') if v.isdigit()}
         if not name:
-            errors.append('اختر الموظف من السجل أو اكتب اسمه')
+            errors.append(pick('اختر الموظف من السجل أو اكتب اسمه', 'Choose the employee from the register or type their name'))
         if request.form.get('resign_date') and not resign:
-            errors.append('تاريخ الاستقالة غير صالح')
+            errors.append(pick('تاريخ الاستقالة غير صالح', 'The resignation date is not valid'))
         if not chosen:
-            errors.append('اختر قسمًا واحدًا على الأقل')
+            errors.append(pick('اختر قسمًا واحدًا على الأقل', 'Choose at least one department'))
         if emp and ClearanceForm.query.filter(ClearanceForm.employee_id == emp.id,
                                               ClearanceForm.status.in_(('in_progress', 'completed'))).first() \
                 and request.form.get('allow_duplicate') != '1':
-            errors.append('لهذا الموظف نموذج مفتوح — أكّد الخيار «إنشاء نموذج آخر» إن كان ذلك مقصودًا')
+            errors.append(pick('لهذا الموظف نموذج مفتوح — أكّد الخيار «إنشاء نموذج آخر» إن كان ذلك مقصودًا', 'This employee has an open form — tick "Create another form" if that is intended'))
             values['dup_warning'] = '1'
         if not errors:
             try:
@@ -105,7 +106,7 @@ def new():
             except wf.WorkflowError as exc:
                 errors.append(str(exc))
             else:
-                flash(f'أُنشئ النموذج {form.ref_code} وأُرسلت روابط التوقيع إلى الأقسام', 'success')
+                flash(pick(f'أُنشئ النموذج {form.ref_code} وأُرسلت روابط التوقيع إلى الأقسام', f'Form {form.ref_code} was created and the signing links were sent to the departments'), 'success')
                 return redirect(url_for('clearance.view', form_id=form.id))
     open_custody = Custody.query.filter_by(employee_id=picked.id, status='handed').order_by(Custody.handed_at).all() \
         if picked else []
@@ -124,7 +125,7 @@ def new_many():
     ids = sorted(_ids())
     people = Employee.query.filter(Employee.id.in_(ids or [0])).order_by(Employee.full_name).all()
     if not people:
-        flash('حدّد موظفاً واحداً على الأقل', 'warning')
+        flash(pick('حدّد موظفاً واحداً على الأقل', 'Select at least one employee'), 'warning')
         return redirect(url_for('employees.index'))
     depts = Department.query.filter_by(is_active=True).order_by(Department.sort_order, Department.name).all()
     custody = {}
@@ -137,15 +138,15 @@ def new_many():
         chosen = {int(v) for v in request.form.getlist('departments') if v.isdigit()}
         resign = parse_date(request.form.get('resign_date'))
         if request.form.get('resign_date') and not resign:
-            errors.append('تاريخ الاستقالة غير صالح')
+            errors.append(pick('تاريخ الاستقالة غير صالح', 'The resignation date is not valid'))
         if not chosen:
-            errors.append('اختر قسمًا واحدًا على الأقل')
+            errors.append(pick('اختر قسمًا واحدًا على الأقل', 'Choose at least one department'))
         if not errors:
             made, skipped = [], []
             again = request.form.get('allow_duplicate') == '1'
             for emp in people:
                 if emp.id in busy and not again:
-                    skipped.append(f'{emp.full_name} (له نموذج مفتوح)')
+                    skipped.append(pick(f'{emp.full_name} (له نموذج مفتوح)', f'{emp.full_name} (has an open form)'))
                     continue
                 try:
                     form = wf.create_form(employee=emp, employee_name=emp.full_name,
@@ -157,9 +158,9 @@ def new_many():
                     skipped.append(f'{emp.full_name} ({exc})')
                     continue
                 made.append(form.ref_code)
-            msg = f'النماذج المنشأة: {len(made)}، وأُرسلت روابط التوقيع إلى الأقسام'
+            msg = pick(f'النماذج المنشأة: {len(made)}، وأُرسلت روابط التوقيع إلى الأقسام', f'Forms created: {len(made)}; the signing links were sent to the departments')
             if skipped:
-                msg += ' — تُرك: ' + '، '.join(skipped[:10])
+                msg += pick(' — تُرك: ', ' — skipped: ') + pick('، ', ', ').join(skipped[:10])
             flash(msg, 'success' if made else 'warning')
             return redirect(url_for('clearance.index'))
     return render_template('clearance/new_many.html', people=people, departments=depts, custody=custody,
@@ -189,14 +190,14 @@ def action(form_id):
     try:
         if act == 'remind':
             n = wf.remind(form)
-            flash(f'تم إرسال التذكير إلى {n} من الأقسام', 'success' if n else 'warning')
+            flash(pick(f'تم إرسال التذكير إلى {n} من الأقسام', f'A reminder was sent to {n} department(s)'), 'success' if n else 'warning')
         elif act in ('cancelled', 'closed', 'reopen'):
             wf.set_status(form, act)
-            flash({'cancelled': 'أُلغي النموذج', 'closed': 'أُقفل النموذج', 'reopen': 'أُعيد فتح النموذج'}[act],
+            flash({'cancelled': pick('أُلغي النموذج', 'The form was cancelled'), 'closed': pick('أُقفل النموذج', 'The form was closed'), 'reopen': pick('أُعيد فتح النموذج', 'The form was reopened')}[act],
                   'success')
         elif act == 'to_finance':
             res = wf.send_to_finance(form, request.form.get('note'))
-            flash('تم الإرسال إلى المحاسبة' if res else f'حُفظت الملاحظة وتعذّر الإرسال: {res.error}',
+            flash(pick('تم الإرسال إلى المحاسبة', 'Sent to Finance') if res else pick('حُفظت الملاحظة وتعذّر إرسال البريد — راجع سجل البريد', 'The note was saved but the email could not be sent — see the mail log'),
                   'success' if res else 'warning')
         else:
             abort(400)
@@ -219,7 +220,7 @@ def bulk():
             elif act == 'delete':
                 answered = any(r.status != 'pending' for r in form.responses)
                 if form.status != 'cancelled' and answered:
-                    skipped.append(f'{form.ref_code} (عليه توقيعات — ألغِه أولاً)')
+                    skipped.append(pick(f'{form.ref_code} (عليه توقيعات — ألغِه أولاً)', f'{form.ref_code} (it has signatures — cancel it first)'))
                     continue
                 audit('clearance.deleted', 'clearance', form.id, ref=form.ref_code, employee=form.employee_name)
                 db.session.delete(form)
@@ -229,8 +230,8 @@ def bulk():
             done += 1
         except wf.WorkflowError as exc:
             skipped.append(f'{form.ref_code} ({exc})')
-    verb = {'remind': 'ذُكِّر', 'cancelled': 'أُلغي', 'closed': 'أُقفل', 'delete': 'حُذف'}[act]
-    flash(f'{verb}: {done}' + ((' — تُرك: ' + '، '.join(skipped[:10])) if skipped else ''),
+    verb = {'remind': pick('ذُكِّر', 'Reminded'), 'cancelled': pick('أُلغي', 'Cancelled'), 'closed': pick('أُقفل', 'Closed'), 'delete': pick('حُذف', 'Deleted')}[act]
+    flash(f'{verb}: {done}' + ((pick(' — تُرك: ', ' — skipped: ') + pick('، ', ', ').join(skipped[:10])) if skipped else ''),
           'success' if done else 'warning')
     return redirect(url_for('clearance.index'))
 
@@ -275,7 +276,7 @@ def respond(resp_id):
     try:
         done = wf.respond(resp, request.form.get('status'), request.form.get('note'),
                           request.form.get('by_name') or user.full_name, by_user=user)
-        flash('تم حفظ التوقيع' + (' — اكتملت جميع التوقيعات وأُرسلت الإشعارات' if done else ''), 'success')
+        flash(pick('تم حفظ التوقيع', 'The signature was saved') + (pick(' — اكتملت جميع التوقيعات وأُرسلت الإشعارات', ' — all signatures are complete and the notifications were sent') if done else ''), 'success')
     except wf.WorkflowError as exc:
         flash(str(exc), 'danger')
     return redirect(request.form.get('next') or url_for('clearance.portal'))
@@ -308,7 +309,7 @@ def sign(token):
         try:
             wf.respond(resp, request.form.get('status'), request.form.get('note'), request.form.get('by_name'),
                        by_user=current_user())
-            flash('شكرًا، تم حفظ ردّ القسم', 'success')
+            flash(pick('شكرًا، تم حفظ ردّ القسم', 'Thank you, the department reply was saved'), 'success')
         except wf.WorkflowError as exc:
             flash(str(exc), 'danger')
         return redirect(url_for('clearance.sign', token=token))
@@ -335,9 +336,9 @@ def settle(form_id):
     form = _form(form_id)
     try:
         res = wf.settle(form, request.form.get('note'), current_user().full_name)
-        flash('تمت التسوية' + (' وإشعار شؤون الموظفين' if res else ''), 'success')
+        flash(pick('تمت التسوية', 'Settled') + (pick(' وإشعار شؤون الموظفين', ' and HR was notified') if res else ''), 'success')
         if res is not None and not res:
-            flash(f'تعذّر إرسال الإشعار: {res.error}', 'warning')
+            flash(pick('تعذّر إرسال الإشعار — راجع سجل البريد', 'The notification could not be sent — see the mail log'), 'warning')
     except wf.WorkflowError as exc:
         flash(str(exc), 'danger')
     return redirect(url_for('clearance.finance'))

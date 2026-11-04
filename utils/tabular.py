@@ -1,6 +1,7 @@
 """Reading pasted lists, CSV and Excel files into rows of named fields (employees, departments, custody).
 A header row is recognised by its column names (Arabic or English); without one the columns are taken in
 the documented order."""
+from utils.i18n import pick
 import csv
 import io
 import re
@@ -34,7 +35,7 @@ def read_table(text=None, file_storage=None):
             wb.close()
             return [r for r in rows if any(r)]
         if not name.endswith(('.csv', '.txt', '.tsv')):
-            raise ValueError('صيغة الملف غير مدعومة — استخدم Excel ‏(.xlsx) أو CSV')
+            raise ValueError(pick('صيغة الملف غير مدعومة — استخدم Excel ‏(.xlsx) أو CSV', 'This file type is not supported — use Excel (.xlsx) or CSV'))
         for enc in ('utf-8-sig', 'cp1256', 'latin-1'):
             try:
                 text = data.decode(enc)

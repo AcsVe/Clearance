@@ -1,15 +1,16 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
-<head>{% include '_head.html' %}<title>{% block title %}{% endblock %} — {{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}</title></head>
+<html lang="{{ lang }}" dir="{{ dir }}">
+<head>{% include '_head.html' %}<title>{% block title %}{% endblock %} — {{ tenant_name }}</title></head>
 <body class="auth">
 <div class="auth-wrap"><div class="auth-card{% block card_class %}{% endblock %}">
+  <div class="auth-lang">{% include '_lang.html' %}</div>
   <div class="logo-circle">{% include '_brand_logo.html' %}</div>
   {% if current_tenant and current_tenant.logo_secondary %}<div class="logos2"><img src="{{ url_for('tenant_logo', tenant_id=current_tenant.id, which='secondary') }}" alt=""></div>{% endif %}
-  <div class="brand-title">{% block brand %}{{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}{% endblock %}</div>
-  <div class="brand-sub">نظام براءة الذمة والعهد العينية</div>
+  <div class="brand-title">{% block brand %}{{ tenant_name }}{% endblock %}</div>
+  <div class="brand-sub">{{ L('نظام براءة الذمة والعهد العينية', 'Clearance and custody system') }}</div>
   {% block heading_wrap %}<h1>{% block heading %}{% endblock %}</h1>{% endblock %}
   {% include '_flash.html' %}
   {% block body %}{% endblock %}
 </div></div>
-<footer class="auth-foot">© {{ now_year }} <b>{{ current_tenant.name_ar if current_tenant else 'براءة الذمة والعهد' }}</b></footer>
+<footer class="auth-foot">© {{ now_year }} <b>{{ tenant_name }}</b></footer>
 </body></html>

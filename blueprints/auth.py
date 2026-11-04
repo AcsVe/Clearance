@@ -13,10 +13,12 @@ from security import verify_password, hash_password, password_problems
 from tenancy import set_current_tenant, tenant_bypass
 from utils.audit import audit
 from utils.helpers import client_ip, new_token, hash_token
+from utils.i18n import pick
 
 auth_bp = Blueprint('auth', __name__)
 
-GENERIC_LOGIN_ERROR = 'اسم المستخدم أو كلمة المرور غير صحيحة'
+def _login_error():
+    return pick('اسم المستخدم أو كلمة المرور غير صحيحة', 'Wrong user name or password')
 
 
 def resolve_tenant_from_request(slug=None):
@@ -71,7 +73,7 @@ def login():
         tenant = g.get('tenant') or resolve_tenant_from_request(request.form.get('org'))
 
         if _ip_blocked():
-            error = 'محاولات دخول كثيرة من هذا الجهاز، حاول لاحقًا'
+            error = pick('محاولات دخول كثيرة من هذا الجهاز، حاول لاحقًا', 'Too many sign-in attempts from this device; try again later')
             _record_attempt(tenant.id if tenant else None, username, False, 'ip_blocked')
             db.session.commit()
             return render_template('auth/login.html', error=error, need_org=need_org), 429
@@ -80,7 +82,7 @@ def login():
             verify_password(None, password)
             _record_attempt(None, username, False, 'no_tenant')
             db.session.commit()
-            return render_template('auth/login.html', error=GENERIC_LOGIN_ERROR,
+            return render_template('auth/login.html', error=_login_error(),
                                    need_org=True), 401
 
         set_current_tenant(tenant.id)
@@ -96,7 +98,7 @@ def login():
             db.session.commit()
             mins = int((user.locked_until - now).total_seconds() // 60) + 1
             return render_template('auth/login.html', need_org=need_org,
-                                   error=f'الحساب مقفل مؤقتًا بسبب محاولات فاشلة. حاول بعد {mins} دقيقة'), 423
+                                   error=pick(f'الحساب مقفل مؤقتًا بسبب محاولات فاشلة. حاول بعد {mins} دقيقة', f'The account is temporarily locked after failed attempts. Try again in {mins} minute(s)')), 423
 
         if not user or not user.is_active or not verify_password(user.password_hash if user else None,
                                                                  password):
@@ -109,7 +111,7 @@ def login():
                     audit('auth.locked', 'user', user.id, actor=user.full_name)
             _record_attempt(tenant.id, username, False, reason)
             db.session.commit()
-            return render_template('auth/login.html', error=GENERIC_LOGIN_ERROR,
+            return render_template('auth/login.html', error=_login_error(),
                                    need_org=need_org), 401
 
         user.failed_logins = 0
@@ -160,7 +162,7 @@ def forgot():
                     PasswordResetToken.created_at >= utcnow() - timedelta(hours=1)).count()
                 if recent < 3:
                     _issue_reset(user, tenant)
-        flash('إن كان الحساب موجودًا وله بريد مسجّل، فقد أرسلنا رابط إعادة التعيين إليه.', 'info')
+        flash(pick('إن كان الحساب موجودًا وله بريد مسجّل، فقد أرسلنا رابط إعادة التعيين إليه.', 'If the account exists and has an email, a reset link was sent to it.'), 'info')
         return redirect(url_for('auth.login'))
     return render_template('auth/forgot.html', need_org=need_org)
 
@@ -209,7 +211,7 @@ def reset(token):
         pw, pw2 = request.form.get('password') or '', request.form.get('confirm') or ''
         errors = password_problems(pw, user.username)
         if pw != pw2:
-            errors.append('كلمتا المرور غير متطابقتين')
+            errors.append(pick('كلمتا المرور غير متطابقتين', 'The two passwords do not match'))
         if not errors:
             now = utcnow()
             user.password_hash = hash_password(pw)
@@ -221,7 +223,7 @@ def reset(token):
             audit('auth.password_reset', 'user', user.id, actor=user.full_name)
             db.session.commit()
             session.clear()
-            flash('تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة.', 'success')
+            flash(pick('تم تغيير كلمة المرور. سجّل الدخول بالكلمة الجديدة.', 'The password was changed. Sign in with the new password.'), 'success')
             return redirect(url_for('auth.login'))
     return render_template('auth/reset.html', invalid=False, errors=errors)
 
@@ -235,10 +237,10 @@ def change_password():
         cur = request.form.get('current') or ''
         pw, pw2 = request.form.get('password') or '', request.form.get('confirm') or ''
         if not verify_password(user.password_hash, cur):
-            errors.append('كلمة المرور الحالية غير صحيحة')
+            errors.append(pick('كلمة المرور الحالية غير صحيحة', 'The current password is wrong'))
         errors += password_problems(pw, user.username)
         if pw != pw2:
-            errors.append('كلمتا المرور غير متطابقتين')
+            errors.append(pick('كلمتا المرور غير متطابقتين', 'The two passwords do not match'))
         if not errors:
             user.password_hash = hash_password(pw)
             user.must_change_password = False
@@ -246,6 +248,6 @@ def change_password():
             audit('auth.password_changed', 'user', user.id)
             db.session.commit()
             session['sv'] = user.session_version
-            flash('تم تغيير كلمة المرور', 'success')
+            flash(pick('تم تغيير كلمة المرور', 'The password was changed'), 'success')
             return redirect(url_for('main.home'))
     return render_template('auth/change_password.html', errors=errors)

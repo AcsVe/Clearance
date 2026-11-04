@@ -1,6 +1,6 @@
 """مراجعة المظهر في متصفح حقيقي (Chrome المثبّت عبر Playwright): كل صفحة على الحاسوب والهاتف.
 
-يقيس: تباين النص مع خلفيته (4.5 على الأقل، و3 للنص الكبير)، والخط الأصغر من 13 بكسل، والتمرير الأفقي، والعناصر
+بالعربية والإنجليزية. يقيس: تباين النص مع خلفيته (4.5 على الأقل، و3 للنص الكبير)، والخط الأصغر من 13 بكسل، والتمرير الأفقي، والعناصر
 الخارجة عن بطاقتها، وأخطاء JavaScript وسياسة أمان المحتوى. ويحفظ صوراً مصغّرة إن ضُبط SHOTS=1.
 
     python tests/ui_audit.py            (بيئة فيها playwright؛ CLR_PY = بايثون النظام لتشغيل الخادم والبيانات)
@@ -83,7 +83,9 @@ report = []
 try:
     with sync_playwright() as p:
         browser = p.chromium.launch(channel=os.environ.get('E2E_CHANNEL', 'chrome'))
-        for vp_name, vp in (('desktop', {'viewport': {'width': 1366, 'height': 900}}), ('phone', dict(p.devices['iPhone 13']))):
+        for lang in ('ar', 'en'):
+          for vp_kind, vp in (('desktop', {'viewport': {'width': 1366, 'height': 900}}), ('phone', dict(p.devices['iPhone 13']))):
+            vp_name = f'{vp_kind}-{lang}'
             ctx = browser.new_context(**vp)
             page = ctx.new_page()
             errs = []
@@ -94,6 +96,9 @@ try:
                 errs.clear()
                 page.goto(BASE + u, wait_until='networkidle')
                 page.wait_for_timeout(250)
+                d = page.evaluate('document.documentElement.dir')
+                if d != ('ltr' if lang == 'en' else 'rtl'):
+                    errs.append(f'page direction is {d}')
                 report.append((vp_name, u, page.evaluate(AUDIT_JS), list(errs)))
                 if os.environ.get('SHOTS'):
                     name = f"{vp_name}-{u.strip('/').replace('/', '_').replace('?', '_')[:40] or 'root'}.jpg"
@@ -101,6 +106,7 @@ try:
                         page.screenshot(path=os.path.join(OUT, name), type='jpeg', quality=40, full_page=True)
                     except Exception:
                         page.screenshot(path=os.path.join(OUT, name), type='jpeg', quality=40)
+            page.goto(BASE + f'/lang/{lang}?next=/login')
             for u in PUBLIC:
                 visit(u)
             page.goto(BASE + '/login')

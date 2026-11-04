@@ -1,86 +1,86 @@
 {% extends 'base.html' %}
-{% block title %}الموظفون{% endblock %}
+{% block title %}{{ L('الموظفون', 'Employees') }}{% endblock %}
 {% block content %}
 <div class="toolbar">
-  <h1>سجل الموظفين <span class="count-pill" data-count-for="t-emps">{{ employees|length }}</span></h1>
-  <a class="btn secondary" href="{{ url_for('employees.template') }}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> نموذج ملف الاستيراد</a>
+  <h1>{{ L('سجل الموظفين', 'Employee register') }} <span class="count-pill" data-count-for="t-emps">{{ employees|length }}</span></h1>
+  <a class="btn secondary" href="{{ url_for('employees.template') }}"><i class="fa-solid fa-file-arrow-down" aria-hidden="true"></i> {{ L('نموذج ملف الاستيراد', 'Import file template') }}</a>
 </div>
 
 <div class="grid2">
 <details class="card panel" {% if not employees %}open{% endif %}>
-  <summary><i class="fa-solid fa-user-plus" aria-hidden="true"></i> إضافة موظف</summary>
+  <summary><i class="fa-solid fa-user-plus" aria-hidden="true"></i> {{ L('إضافة موظف', 'Add an employee') }}</summary>
   <form method="post" action="{{ url_for('employees.form') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row">
-      <div><label>الاسم الكامل *</label><input type="text" name="full_name" required></div>
-      <div><label>الرقم الوظيفي</label><input type="text" name="employee_number" dir="ltr"></div>
-      <div><label>البريد الإلكتروني</label><input type="email" name="email" dir="ltr"></div>
+      <div><label>{{ L('الاسم الكامل *', 'Full name *') }}</label><input type="text" name="full_name" required></div>
+      <div><label>{{ L('الرقم الوظيفي', 'Employee number') }}</label><input type="text" name="employee_number" dir="ltr"></div>
+      <div><label>{{ L('البريد الإلكتروني', 'Email') }}</label><input type="email" name="email" dir="ltr"></div>
     </div>
     <div class="row">
-      <div><label>الهاتف</label><input type="text" name="phone" dir="ltr"></div>
-      <div><label>القسم</label><select name="department_id"><option value="">—</option>
+      <div><label>{{ L('الهاتف', 'Phone') }}</label><input type="text" name="phone" dir="ltr"></div>
+      <div><label>{{ L('القسم', 'Department') }}</label><select name="department_id"><option value="">—</option>
         {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
-      <div><label>المسمى الوظيفي</label><input type="text" name="job_title"></div>
+      <div><label>{{ L('المسمى الوظيفي', 'Job title') }}</label><input type="text" name="job_title"></div>
     </div>
-    <button class="btn" type="submit">إضافة</button>
+    <button class="btn" type="submit">{{ L('إضافة', 'Add') }}</button>
   </form>
 </details>
 
 <details class="card panel" {% if not employees %}open{% endif %}>
-  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> إضافة قائمة أو استيراد ملف</summary>
+  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ L('إضافة قائمة أو استيراد ملف', 'Add a list or import a file') }}</summary>
   <form method="post" action="{{ url_for('employees.import_list') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>الصق القائمة (سطر لكل موظف، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)</label>
-    <textarea name="text" rows="5" placeholder="{{ field_labels|join('، ') }}&#10;محمد أحمد، 1023، m.ahmad@example.org، 0790000000، تقنية المعلومات، فني"></textarea>
-    <p class="hint">ترتيب الأعمدة: {{ field_labels|join(' ← ') }}. إن كان السطر الأول عناوين أعمدة (بالعربية أو الإنجليزية) فيُعتمد ترتيبها.</p>
+    <label>{{ L('الصق القائمة (سطر لكل موظف، والأعمدة مفصولة بفاصلة أو Tab كما تُنسخ من Excel)', 'Paste the list (one line per employee, columns separated by commas or tabs, as copied from Excel)') }}</label>
+    <textarea name="text" rows="5" placeholder="{{ field_labels|join(L('، ', ', ')) }}{{ L('&#10;محمد أحمد، 1023، m.ahmad@example.org، 0790000000، تقنية المعلومات، فني', '&#10;Mohammad Ahmad, 1023, m.ahmad@example.org, 0790000000, IT, Technician') }}"></textarea>
+    <p class="hint">{{ L('ترتيب الأعمدة:', 'Column order:') }} {{ field_labels|join(' ← ') }}{{ L('. إن كان السطر الأول عناوين أعمدة (بالعربية أو الإنجليزية) فيُعتمد ترتيبها.', '. If the first line holds column titles (Arabic or English), their order is used.') }}</p>
     <div class="row">
-      <div><label>أو ملف Excel ‏(.xlsx) أو CSV</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
-      <div><label>القسم الافتراضي لمن لا قسم له</label><select name="department_id"><option value="">—</option>
+      <div><label>{{ L('أو ملف Excel ‏(.xlsx) أو CSV', 'or an Excel (.xlsx) or CSV file') }}</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
+      <div><label>{{ L('القسم الافتراضي لمن لا قسم له', 'Default department for rows without one') }}</label><select name="department_id"><option value="">—</option>
         {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
     </div>
-    <div class="checks"><label><input type="checkbox" name="update" value="1"> تحديث بيانات الموجودين (المطابقة بالرقم الوظيفي ثم البريد)</label></div>
-    <button class="btn" type="submit">استيراد</button>
+    <div class="checks"><label><input type="checkbox" name="update" value="1"> {{ L('تحديث بيانات الموجودين (المطابقة بالرقم الوظيفي ثم البريد)', 'Update existing employees (matched by employee number, then email)') }}</label></div>
+    <button class="btn" type="submit">{{ L('استيراد', 'Import') }}</button>
   </form>
 </details>
 </div>
 
 <div class="list-tools">
-  <input type="search" data-list-search="t-emps" placeholder="بحث بالاسم أو الرقم أو البريد أو القسم" aria-label="بحث">
+  <input type="search" data-list-search="t-emps" placeholder="{{ L('بحث بالاسم أو الرقم أو البريد أو القسم', 'Search by name, number, email or department') }}" aria-label="{{ L('بحث', 'Search') }}">
 </div>
 <form class="bulk-bar" method="post" action="{{ url_for('employees.bulk') }}" data-bulk-for="t-emps">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b></span>
-  <button class="btn small ok" name="action" value="activate">تفعيل</button>
-  <button class="btn small secondary" name="action" value="deactivate">إيقاف</button>
-  <select name="department_id" aria-label="نقل إلى قسم" style="width:auto;padding:5px 8px"><option value="">— بلا قسم —</option>
+  <span>{{ L('المحدد:', 'Selected:') }} <b data-selected-count>0</b></span>
+  <button class="btn small ok" name="action" value="activate">{{ L('تفعيل', 'Activate') }}</button>
+  <button class="btn small secondary" name="action" value="deactivate">{{ L('إيقاف', 'Deactivate') }}</button>
+  <select name="department_id" aria-label="{{ L('نقل إلى قسم', 'Move to a department') }}" style="width:auto;padding:5px 8px"><option value="">{{ L('— بلا قسم —', '— no department —') }}</option>
     {% for d in departments if d.is_active %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select>
-  <button class="btn small secondary" name="action" value="move">نقل إلى القسم</button>
+  <button class="btn small secondary" name="action" value="move">{{ L('نقل إلى القسم', 'Move to the department') }}</button>
   {% if has_perm('users.manage') %}
-  <label style="display:inline-flex;gap:4px;font-weight:500;margin:0"><input type="checkbox" name="send_reset" value="1" checked> مع رابط كلمة المرور</label>
-  <button class="btn small secondary" name="action" value="accounts" data-confirm="إنشاء حسابات دخول (دور «موظف») لـ {n} من الموظفين الذين لهم بريد؟">إنشاء حسابات دخول</button>
+  <label style="display:inline-flex;gap:4px;font-weight:500;margin:0"><input type="checkbox" name="send_reset" value="1" checked> {{ L('مع رابط كلمة المرور', 'with a password link') }}</label>
+  <button class="btn small secondary" name="action" value="accounts" data-confirm="{{ L('إنشاء حسابات دخول (دور «موظف») لـ {n} من الموظفين الذين لهم بريد؟', 'Create sign-in accounts (role "Employee") for {n} selected employee(s) who have an email?') }}">{{ L('إنشاء حسابات دخول', 'Create sign-in accounts') }}</button>
   {% endif %}
   {% if has_perm('clearance.create') %}
-  <button class="btn small secondary" formaction="{{ url_for('clearance.new_many') }}" name="action" value="clearance"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> بدء براءة ذمة</button>
+  <button class="btn small secondary" formaction="{{ url_for('clearance.new_many') }}" name="action" value="clearance"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> {{ L('بدء براءة ذمة', 'Start a clearance') }}</button>
   {% endif %}
-  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من الموظفين؟ نماذج براءة الذمة السابقة تبقى محفوظة باسمهم.">حذف</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="{{ L('حذف {n} من الموظفين؟ نماذج براءة الذمة السابقة تبقى محفوظة باسمهم.', 'Delete {n} employee(s)? Their earlier clearance forms stay on record under their name.') }}">{{ L('حذف', 'Delete') }}</button>
 </form>
 
 <div class="card table-wrap"><table data-table id="t-emps">
-<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
-<th data-filter="text">الاسم</th><th data-filter="text">الرقم الوظيفي</th><th data-filter="text">البريد</th><th data-filter="text">الهاتف</th>
-<th data-filter="select">القسم</th><th data-filter="select">المسمى الوظيفي</th><th data-filter="select">الحساب</th>
-<th data-sort="num">عهد قائمة</th><th data-filter="select">الحالة</th><th data-nosort></th></tr></thead>
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="{{ L('تحديد الكل', 'Select all') }}"></th>
+<th data-filter="text">{{ L('الاسم', 'Name') }}</th><th data-filter="text">{{ L('الرقم الوظيفي', 'Employee number') }}</th><th data-filter="text">{{ L('البريد', 'Email') }}</th><th data-filter="text">{{ L('الهاتف', 'Phone') }}</th>
+<th data-filter="select">{{ L('القسم', 'Department') }}</th><th data-filter="select">{{ L('المسمى الوظيفي', 'Job title') }}</th><th data-filter="select">{{ L('الحساب', 'Account') }}</th>
+<th data-sort="num">{{ L('عهد قائمة', 'Open custody') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-nosort></th></tr></thead>
 <tbody>
 {% for e in employees %}
-<tr data-id="{{ e.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ e.id }}" aria-label="تحديد {{ e.full_name }}"></td>
+<tr data-id="{{ e.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ e.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ e.full_name }}"></td>
 <td>{{ e.full_name }}</td><td class="mono">{{ e.employee_number or '—' }}</td><td class="mono">{{ e.email or '—' }}</td>
 <td class="mono">{{ e.phone or '—' }}</td>
 <td data-value="{{ e.department.name if e.department else '—' }}">{{ (e.department.icon ~ ' ' ~ e.department.name) if e.department else '—' }}</td>
 <td>{{ e.job_title or '—' }}</td>
-<td data-value="{{ 'له حساب' if e.user_id else 'بلا حساب' }}">{% if e.user %}<span class="badge ok mono">{{ e.user.username }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
+<td data-value="{{ L('له حساب', 'Has an account') if e.user_id else L('بلا حساب', 'No account') }}">{% if e.user %}<span class="badge ok mono">{{ e.user.username }}</span>{% else %}<span class="muted">—</span>{% endif %}</td>
 <td>{% if open_custody.get(e.id) %}<span class="badge warn">{{ open_custody[e.id] }}</span>{% else %}0{% endif %}</td>
-<td data-value="{{ 'فعّال' if e.is_active else 'موقوف' }}">{% if e.is_active %}<span class="badge ok">فعّال</span>{% else %}<span class="badge bad">موقوف</span>{% endif %}</td>
-<td><a class="btn small secondary" href="{{ url_for('employees.form', emp_id=e.id) }}">تعديل</a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا يوجد موظفون بعد — أضفهم من الأعلى.</td></tr>{% endfor %}
+<td data-value="{{ L('فعّال', 'Active') if e.is_active else L('موقوف', 'Inactive') }}">{% if e.is_active %}<span class="badge ok">{{ L('فعّال', 'Active') }}</span>{% else %}<span class="badge bad">{{ L('موقوف', 'Inactive') }}</span>{% endif %}</td>
+<td><a class="btn small secondary" href="{{ url_for('employees.form', emp_id=e.id) }}">{{ L('تعديل', 'Edit') }}</a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">{{ L('لا يوجد موظفون بعد — أضفهم من الأعلى.', 'No employees yet — add them above.') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

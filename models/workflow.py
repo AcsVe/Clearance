@@ -36,6 +36,15 @@ class Employee(TenantScoped, db.Model):
 FORM_STATUSES = [('in_progress', 'قيد التنفيذ'), ('completed', 'مكتمل'), ('closed', 'مقفل'), ('cancelled', 'ملغي')]
 RESPONSE_STATUSES = [('pending', 'قيد الانتظار'), ('cleared', 'خالية الذمة'), ('held', 'معلق')]
 CUSTODY_STATUSES = [('handed', 'مسلمة'), ('returned', 'مسترجعة')]
+STATUS_EN = {'in_progress': 'In progress', 'completed': 'Completed', 'closed': 'Closed', 'cancelled': 'Cancelled',
+             'pending': 'Pending', 'cleared': 'Cleared', 'held': 'On hold', 'handed': 'Handed over', 'returned': 'Returned'}
+
+
+def _label(pairs, code):
+    from utils.i18n import lang
+    if lang() == 'en' and code in STATUS_EN:
+        return STATUS_EN[code]
+    return dict(pairs).get(code, code)
 
 
 class ClearanceForm(TenantScoped, db.Model):
@@ -72,7 +81,7 @@ class ClearanceForm(TenantScoped, db.Model):
 
     @property
     def status_label(self):
-        return dict(FORM_STATUSES).get(self.status, self.status)
+        return _label(FORM_STATUSES, self.status)
 
     @property
     def is_open(self):
@@ -111,7 +120,7 @@ class ClearanceResponse(TenantScoped, db.Model):
 
     @property
     def status_label(self):
-        return dict(RESPONSE_STATUSES).get(self.status, self.status)
+        return _label(RESPONSE_STATUSES, self.status)
 
 
 class Custody(TenantScoped, db.Model):
@@ -141,4 +150,4 @@ class Custody(TenantScoped, db.Model):
 
     @property
     def status_label(self):
-        return dict(CUSTODY_STATUSES).get(self.status, self.status)
+        return _label(CUSTODY_STATUSES, self.status)

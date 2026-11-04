@@ -1,0 +1,2 @@
+{# مبدّل اللغة: اللغة الأخرى مكتوبة بنفسها. #}
+<a class="lang-switch" href="{{ url_for('set_lang', code='ar' if lang == 'en' else 'en', next=request.full_path) }}" lang="{{ 'ar' if lang == 'en' else 'en' }}" hreflang="{{ 'ar' if lang == 'en' else 'en' }}"><i class="fa-solid fa-globe" aria-hidden="true"></i> {{ 'العربية' if lang == 'en' else 'English' }}</a>

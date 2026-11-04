@@ -1,4 +1,5 @@
 import logging
+from utils.i18n import pick
 import os
 
 from flask import Flask, g, session, send_from_directory, make_response, render_template, abort
@@ -7,6 +8,9 @@ from werkzeug.middleware.proxy_fix import ProxyFix
 from config import build_config, load_config_env, program_dir
 from extensions import db, csrf, migrate
 from tenancy import set_current_tenant, tenant_bypass, TenantContextError
+
+
+from utils import i18n  # noqa: E402
 
 
 def create_app(overrides=None):
@@ -154,7 +158,22 @@ def _register_request_hooks(app):
             'has_perm': has_perm,
             'accent': (tenant.accent_color if tenant else app.config['ACCENT_COLOR']),
             'now_year': _amman_year(),
+            'lang': i18n.lang(), 'dir': 'ltr' if i18n.lang() == 'en' else 'rtl', 'L': i18n.L,
+            'tenant_name': i18n.tenant_name(tenant),
         }
+
+    @app.route('/lang/<code>')
+    def set_lang(code):
+        # Switching the language changes nothing on the server, so it needs no CSRF token.
+        from flask import redirect, request, session
+        code = 'en' if code == 'en' else 'ar'
+        session['lang'] = code
+        nxt = request.args.get('next') or '/'
+        if not nxt.startswith('/') or nxt.startswith('//'):
+            nxt = '/'
+        resp = redirect(nxt)
+        resp.set_cookie('lang', code, max_age=365 * 86400, samesite='Lax', secure=app.config.get('SESSION_COOKIE_SECURE', False), httponly=True)
+        return resp
 
 
 def _register_filters(app):
@@ -173,9 +192,11 @@ def _register_filters(app):
             return str(value)
         return value.strftime(fmt)
     app.jinja_env.filters['local'] = local
+    app.jinja_env.globals['L'] = i18n.L          # also inside imported macros, which do not see the page context
     from utils import audit_labels
     app.jinja_env.globals.update(audit_action=audit_labels.action_label, audit_group=audit_labels.group_label,
-                                 audit_entity=audit_labels.entity_label, audit_details=audit_labels.details_lines)
+                                 audit_entity=audit_labels.entity_label, audit_details=audit_labels.details_lines,
+                                 audit_actor=audit_labels.actor_label)
 
 
 def _amman_year():
@@ -233,11 +254,11 @@ def _register_error_handlers(app):
     @app.errorhandler(403)
     def forbidden(e):
         return render_template('errors/error.html', code=403,
-                               message='لا تملك صلاحية لهذه الصفحة'), 403
+                               message=i18n.pick('لا تملك صلاحية لهذه الصفحة', 'You do not have access to this page')), 403
 
     @app.errorhandler(404)
     def not_found(e):
-        return render_template('errors/error.html', code=404, message='الصفحة غير موجودة'), 404
+        return render_template('errors/error.html', code=404, message=i18n.pick('الصفحة غير موجودة', 'The page was not found')), 404
 
     from flask_wtf.csrf import CSRFError
 
@@ -247,7 +268,7 @@ def _register_error_handlers(app):
         clear message instead of «Bad Request»."""
         from flask import flash, redirect, request, url_for
         from urllib.parse import urlparse
-        flash('انتهت صلاحية الصفحة — أعد المحاولة', 'warning')
+        flash(i18n.pick('انتهت صلاحية الصفحة — أعد المحاولة', 'The page expired — try again'), 'warning')
         back = request.referrer or ''
         if not back or urlparse(back).netloc != request.host:
             back = url_for('main.index')
@@ -256,7 +277,7 @@ def _register_error_handlers(app):
     @app.errorhandler(TenantContextError)
     def tenant_error(e):
         app.logger.error('Tenant isolation violation: %s', e)
-        return render_template('errors/error.html', code=500, message='خطأ داخلي'), 500
+        return render_template('errors/error.html', code=500, message=i18n.pick('حدث خطأ غير متوقع. أعد المحاولة بعد قليل.', 'Something went wrong. Try again in a moment.')), 500
 
 
 if __name__ == '__main__':

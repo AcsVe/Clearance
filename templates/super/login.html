@@ -1,14 +1,14 @@
 {% extends 'auth/_layout.html' %}
 {% from 'auth/_fields.html' import field %}
-{% block title %}المدير العام{% endblock %}
-{% block brand %}براءة الذمة والعهد{% endblock %}
-{% block heading %}دخول المدير العام{% endblock %}
+{% block title %}{{ L('المدير العام', 'Super administrator') }}{% endblock %}
+{% block brand %}{{ L('براءة الذمة والعهد', 'Clearance and custody') }}{% endblock %}
+{% block heading %}{{ L('دخول المدير العام', 'Super administrator sign in') }}{% endblock %}
 {% block body %}
 {% if error %}<div class="alert danger">{{ error }}</div>{% endif %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {{ field('username', 'اسم المستخدم', 'fa-user-shield', autocomplete='username', autofocus=True) }}
-  {{ field('password', 'كلمة المرور', 'fa-lock', type='password', autocomplete='current-password') }}
-  <button class="btn" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> دخول</button>
+  {{ field('username', L('اسم المستخدم', 'User name'), 'fa-user-shield', autocomplete='username', autofocus=True) }}
+  {{ field('password', L('كلمة المرور', 'Password'), 'fa-lock', type='password', autocomplete='current-password') }}
+  <button class="btn" type="submit"><i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i> {{ L('دخول', 'Sign in') }}</button>
 </form>
 {% endblock %}

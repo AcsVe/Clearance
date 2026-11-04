@@ -33,35 +33,102 @@ KEYS = {'department': 'القسم', 'departments': 'عدد الأقسام', 'emp
 VALUES = {'cleared': 'خالية الذمة', 'held': 'معلّق', 'pending': 'قيد الانتظار', 'returned': 'مسترجعة', 'handed': 'مسلّمة'}
 
 
+# ── English (shown when the interface is in English) ──────────────────────────
+ACTIONS_EN = {
+    'auth.login': 'Sign in', 'auth.logout': 'Sign out', 'auth.locked': 'Account locked after wrong attempts',
+    'auth.password_changed': 'Password changed', 'auth.password_reset': 'Password set from the email link',
+    'auth.reset_requested': 'Password reset link requested',
+    'clearance.created': 'Clearance form created', 'clearance.responded': 'Department replied to a clearance',
+    'clearance.completed': 'Clearance form completed', 'clearance.reminded': 'Late departments reminded',
+    'clearance.sent_to_finance': 'Sent to Finance', 'clearance.settled': 'Financial settlement and closing',
+    'clearance.deleted': 'Clearance form deleted',
+    'custody.handed': 'Item handed over', 'custody.returned': 'Item returned', 'custody.return_undone': 'Return undone',
+    'custody.updated': 'Item edited', 'custody.deleted': 'Item deleted', 'custody.imported': 'Custody imported',
+    'department.created': 'Department added', 'department.deleted': 'Department deleted',
+    'employee.created': 'Employee added', 'employee.deleted': 'Employee deleted', 'employee.imported': 'Employees imported',
+    'role.saved': 'Role and permissions saved', 'role.deleted': 'Role deleted',
+    'settings.updated': 'Settings changed', 'sheet.imported': 'Old Google Sheet data imported',
+    'email_log.acknowledged': 'Mail errors read',
+    'tenant.created': 'Organization created', 'tenant.updated': 'Organization edited',
+    'user.created': 'User added', 'user.created_from_employee': 'Sign-in account created for an employee', 'user.updated': 'User edited',
+    'user.deleted': 'User deleted', 'user.unlocked': 'Account unlocked', 'user.sessions_revoked': 'User sessions ended',
+    'user.password_set_by_superadmin': 'New password from the super administrator',
+}
+GROUPS_EN = {'auth': 'Sign-in', 'clearance': 'Clearance', 'custody': 'Custody', 'department': 'Departments',
+             'employee': 'Employees', 'role': 'Roles', 'settings': 'Settings', 'sheet': 'Import', 'email_log': 'Mail',
+             'tenant': 'Organizations', 'user': 'Users'}
+ENTITIES_EN = {'user': 'User', 'clearance': 'Form', 'custody': 'Item', 'department': 'Department', 'employee': 'Employee',
+               'role': 'Role', 'tenant': 'Organization', 'settings': 'Settings'}
+KEYS_EN = {'department': 'Department', 'departments': 'Departments', 'employee': 'Employee', 'ref': 'Reference', 'status': 'Status',
+           'count': 'Count', 'added': 'Added', 'updated': 'Updated', 'skipped': 'Skipped', 'sent': 'Sent', 'held': 'On hold',
+           'item': 'Item', 'recipient': 'Recipient', 'name': 'Name', 'username': 'User name', 'roles': 'Roles',
+           'permissions': 'Permissions', 'code': 'Code', 'problems': 'Notes', 'logos': 'Logos', 'by_admin': 'By the administrator',
+           'actor': 'Done by', 'note': 'Note'}
+VALUES_EN = {'cleared': 'Cleared', 'held': 'On hold', 'pending': 'Pending', 'returned': 'Returned', 'handed': 'Handed over'}
+
+
+def _en():
+    from utils.i18n import lang
+    return lang() == 'en'
+
+
 def _v(x):
     if isinstance(x, bool):
-        return 'نعم' if x else 'لا'
-    return VALUES.get(x, x) if isinstance(x, str) else x
+        return ('Yes' if x else 'No') if _en() else ('نعم' if x else 'لا')
+    if isinstance(x, str):
+        return (VALUES_EN if _en() else VALUES).get(x, x)
+    return x
+
+
+def _sep():
+    return ', ' if _en() else '، '
 
 
 def action_label(code):
-    return ACTIONS.get(code or '', code or '')
+    return (ACTIONS_EN if _en() else ACTIONS).get(code or '', code or '')
 
 
 def group_label(code):
-    return GROUPS.get((code or '').split('.')[0], '')
+    return (GROUPS_EN if _en() else GROUPS).get((code or '').split('.')[0], '')
+
+
+def groups_local():
+    """[(code, label)] sorted by label, in the interface language."""
+    g = GROUPS_EN if _en() else GROUPS
+    return sorted(g.items(), key=lambda kv: kv[1])
+
+
+def actor_label(actor):
+    """'النظام' and 'مدير عام: x' are stored in Arabic; people's names stay as they are."""
+    if not _en() or not actor:
+        return actor or ''
+    if actor == 'النظام':
+        return 'System'
+    if actor.startswith('مدير عام: '):
+        return 'Super administrator: ' + actor[len('مدير عام: '):]
+    return actor
 
 
 def entity_label(entity_type, entity_id):
     if not entity_type:
         return ''
-    return f'{ENTITIES.get(entity_type, entity_type)} رقم {entity_id}' if entity_id else ENTITIES.get(entity_type, entity_type)
+    names = ENTITIES_EN if _en() else ENTITIES
+    name = names.get(entity_type, entity_type)
+    if not entity_id:
+        return name
+    return f'{name} no. {entity_id}' if _en() else f'{name} رقم {entity_id}'
 
 
 def details_lines(details):
-    """[(عنوان، قيمة)] مقروءة؛ القوائم تُجمع بفواصل."""
+    """[(title, value)] in plain words; lists are joined with commas."""
+    keys = KEYS_EN if _en() else KEYS
     out = []
     for k, v in (details or {}).items():
         if isinstance(v, (list, tuple)):
-            v = '، '.join(str(_v(x)) for x in v)
+            v = _sep().join(str(_v(x)) for x in v)
         elif isinstance(v, dict):
-            v = '، '.join(f'{KEYS.get(a, a)}: {_v(b)}' for a, b in v.items())
+            v = _sep().join(f'{keys.get(a, a)}: {_v(b)}' for a, b in v.items())
         else:
             v = _v(v)
-        out.append((KEYS.get(k, k.replace('_', ' ')), v))
+        out.append((keys.get(k, k.replace('_', ' ')), v))
     return out

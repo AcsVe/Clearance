@@ -1,13 +1,13 @@
 {% extends 'base.html' %}
-{% block title %}دور{% endblock %}
+{% block title %}{{ L('دور', 'Role') }}{% endblock %}
 {% block content %}
-<h1>{{ 'تعديل الدور: ' ~ role.name if role.id else 'دور جديد' }}</h1>
+<h1>{{ L('تعديل الدور: ', 'Edit role: ') ~ role.display_name if role.id else L('دور جديد', 'New role') }}</h1>
 {% set have = role.permission_codes if role.id else [] %}
 <div class="card"><form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>اسم الدور</label><input type="text" name="name" value="{{ role.name or '' }}" required></div>
-    <div><label>الوصف</label><input type="text" name="description" value="{{ role.description or '' }}"></div>
+    <div><label>{{ L('اسم الدور', 'Role name') }}</label><input type="text" name="name" value="{{ role.name or '' }}" required></div>
+    <div><label>{{ L('الوصف', 'Description') }}</label><input type="text" name="description" value="{{ role.description or '' }}"></div>
   </div>
   {% for group in permissions.values()|map(attribute=1)|unique %}
   <h2>{{ group }}</h2><div class="checks">
@@ -15,7 +15,7 @@
     <label><input type="checkbox" name="perms" value="{{ code }}" {% if code in have %}checked{% endif %}> {{ meta[0] }}</label>
   {% endfor %}</div>
   {% endfor %}<br>
-  <button class="btn" type="submit">حفظ</button>
-  <a class="btn secondary" href="{{ url_for('admin.roles') }}">إلغاء</a>
+  <button class="btn" type="submit">{{ L('حفظ', 'Save') }}</button>
+  <a class="btn secondary" href="{{ url_for('admin.roles') }}">{{ L('إلغاء', 'Cancel') }}</a>
 </form></div>
 {% endblock %}

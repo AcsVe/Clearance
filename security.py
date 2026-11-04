@@ -1,3 +1,4 @@
+from utils.i18n import pick
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import current_app
@@ -20,11 +21,11 @@ def password_problems(pw, username=None):
     problems = []
     min_len = current_app.config.get('PASSWORD_MIN_LENGTH', 10)
     if len(pw or '') < min_len:
-        problems.append(f'كلمة المرور يجب ألا تقل عن {min_len} أحرف')
+        problems.append(pick(f'كلمة المرور يجب ألا تقل عن {min_len} أحرف', f'The password must have at least {min_len} characters'))
     if not re.search(r'[A-Za-z؀-ۿ]', pw or ''):
-        problems.append('يجب أن تحتوي كلمة المرور على حرف واحد على الأقل')
+        problems.append(pick('يجب أن تحتوي كلمة المرور على حرف واحد على الأقل', 'The password must contain at least one letter'))
     if not re.search(r'\d', pw or ''):
-        problems.append('يجب أن تحتوي كلمة المرور على رقم واحد على الأقل')
+        problems.append(pick('يجب أن تحتوي كلمة المرور على رقم واحد على الأقل', 'The password must contain at least one digit'))
     if username and pw and username.lower() in pw.lower():
-        problems.append('لا يجوز أن تحتوي كلمة المرور على اسم المستخدم')
+        problems.append(pick('لا يجوز أن تحتوي كلمة المرور على اسم المستخدم', 'The password must not contain the user name'))
     return problems

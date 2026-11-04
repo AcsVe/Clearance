@@ -2,6 +2,7 @@
 «الاقسام» → departments, «النماذج» + «الردود» → clearance forms and responses, «العهد» → custody.
 Employees met in the forms are added to the roster (inactive — they have left). Running it again skips what
 is already imported (departments by code, forms by their FORM-… id, custody by CUST-… id)."""
+from utils.i18n import pick
 import io
 import re
 from datetime import date, datetime
@@ -168,7 +169,7 @@ def import_workbook(data):
             d = by_legacy.get(str(rr.get('dept_id') or ''))
             if d is None or d.id in seen:
                 if d is None:
-                    rep['problems'].append(f'{ref}: قسم غير معروف «{rr.get("dept_id")}»')
+                    rep['problems'].append(pick(f'{ref}: قسم غير معروف «{rr.get("dept_id")}»', f'{ref}: unknown department "{rr.get("dept_id")}"'))
                 continue
             seen.add(d.id)
             at = parse_any_date(rr.get('at'))

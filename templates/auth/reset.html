@@ -1,18 +1,18 @@
 {% extends 'auth/_layout.html' %}
 {% from 'auth/_fields.html' import field %}
-{% block title %}تعيين كلمة المرور{% endblock %}
-{% block heading %}تعيين كلمة مرور جديدة{% endblock %}
+{% block title %}{{ L('تعيين كلمة المرور', 'Set the password') }}{% endblock %}
+{% block heading %}{{ L('تعيين كلمة مرور جديدة', 'Set a new password') }}{% endblock %}
 {% block body %}
 {% if invalid %}
-<div class="alert danger">الرابط غير صالح أو منتهي الصلاحية أو استُخدم مسبقًا.</div>
-<div class="links"><a href="{{ url_for('auth.forgot') }}">طلب رابط جديد</a></div>
+<div class="alert danger">{{ L('الرابط غير صالح أو منتهي الصلاحية أو استُخدم مسبقًا.', 'The link is invalid, expired or already used.') }}</div>
+<div class="links"><a href="{{ url_for('auth.forgot') }}">{{ L('طلب رابط جديد', 'Request a new link') }}</a></div>
 {% else %}
 <form method="post">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  {{ field('password', 'كلمة المرور الجديدة', 'fa-lock', type='password', autocomplete='new-password', autofocus=True) }}
-  {{ field('confirm', 'تأكيدها', 'fa-lock', type='password', autocomplete='new-password') }}
-  <p class="hint">10 أحرف على الأقل، وتحتوي حرفًا ورقمًا.</p>
-  <button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> حفظ</button>
+  {{ field('password', L('كلمة المرور الجديدة', 'New password'), 'fa-lock', type='password', autocomplete='new-password', autofocus=True) }}
+  {{ field('confirm', L('تأكيدها', 'Confirm it'), 'fa-lock', type='password', autocomplete='new-password') }}
+  <p class="hint">{{ L('10 أحرف على الأقل، وتحتوي حرفًا ورقمًا.', 'At least 10 characters, with a letter and a digit.') }}</p>
+  <button class="btn" type="submit"><i class="fa-solid fa-floppy-disk" aria-hidden="true"></i> {{ L('حفظ', 'Save') }}</button>
 </form>
 {% endif %}
 {% endblock %}

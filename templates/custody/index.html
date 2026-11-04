@@ -1,82 +1,82 @@
 {% extends 'base.html' %}
-{% block title %}العهد{% endblock %}
+{% block title %}{{ L('العهد', 'Custody') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>العهد العينية <span class="count-pill" data-count-for="t-cust">{{ rows|length }}</span></h1></div>
+<div class="toolbar"><h1>{{ L('العهد العينية', 'Custody items') }} <span class="count-pill" data-count-for="t-cust">{{ rows|length }}</span></h1></div>
 
 {% if may_add %}
 <div class="grid2">
 <details class="card panel" {% if not rows or pre %}open{% endif %}>
-  <summary><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> تسليم عهدة{% if pre %} إلى {{ pre.full_name }}{% endif %}</summary>
+  <summary><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> {{ L('تسليم عهدة', 'Hand over an item') }}{% if pre %} {{ L('إلى', 'To') }} {{ pre.full_name }}{% endif %}</summary>
   <form method="post" action="{{ url_for('custody.add') }}">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     {% if back %}<input type="hidden" name="next" value="{{ back }}">{% endif %}
     <div class="row">
-      <div><label>العهدة *</label><input type="text" name="item" required placeholder="مثل: حاسوب محمول Dell"></div>
-      <div><label>الكمية</label><input type="number" name="quantity" value="1" min="1"></div>
-      <div><label>الرقم التسلسلي</label><input type="text" name="serial_no" dir="ltr"></div>
+      <div><label>{{ L('العهدة *', 'Item *') }}</label><input type="text" name="item" required placeholder="{{ L('مثل: حاسوب محمول Dell', 'e.g. Dell laptop') }}"></div>
+      <div><label>{{ L('الكمية', 'Quantity') }}</label><input type="number" name="quantity" value="1" min="1"></div>
+      <div><label>{{ L('الرقم التسلسلي', 'Serial number') }}</label><input type="text" name="serial_no" dir="ltr"></div>
     </div>
     <div class="row">
-      <div><label>المستلم من سجل الموظفين</label><select name="employee_id" data-employee-picker>
-        <option value="">— اختر أو اكتب الاسم —</option>
-        {% if pre and not pre.is_active %}<option value="{{ pre.id }}" data-name="{{ pre.full_name }}" data-email="{{ pre.email or '' }}" selected>{{ pre.full_name }} (موقوف)</option>{% endif %}
+      <div><label>{{ L('المستلم من سجل الموظفين', 'Recipient from the employee register') }}</label><select name="employee_id" data-employee-picker>
+        <option value="">{{ L('— اختر أو اكتب الاسم —', '— choose, or type the name —') }}</option>
+        {% if pre and not pre.is_active %}<option value="{{ pre.id }}" data-name="{{ pre.full_name }}" data-email="{{ pre.email or '' }}" selected>{{ pre.full_name }} {{ L('(موقوف)', '(inactive)') }}</option>{% endif %}
         {% for e in employees %}<option value="{{ e.id }}" data-name="{{ e.full_name }}" data-email="{{ e.email or '' }}" {% if pre and pre.id == e.id %}selected{% endif %}>{{ e.full_name }}{% if e.employee_number %} — {{ e.employee_number }}{% endif %}</option>{% endfor %}</select></div>
-      <div><label>اسم المستلم</label><input type="text" name="recipient_name" data-fill="name" value="{{ pre.full_name if pre else '' }}"></div>
-      <div><label>بريد المستلم</label><input type="email" name="recipient_email" dir="ltr" data-fill="email" value="{{ (pre.email or '') if pre else '' }}"></div>
+      <div><label>{{ L('اسم المستلم', 'Recipient name') }}</label><input type="text" name="recipient_name" data-fill="name" value="{{ pre.full_name if pre else '' }}"></div>
+      <div><label>{{ L('بريد المستلم', 'Recipient email') }}</label><input type="email" name="recipient_email" dir="ltr" data-fill="email" value="{{ (pre.email or '') if pre else '' }}"></div>
     </div>
     <div class="row">
-      <div><label>القسم المسلِّم *</label><select name="department_id" required>
+      <div><label>{{ L('القسم المسلِّم *', 'Handing department *') }}</label><select name="department_id" required>
         {% for d in departments %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
-      <div><label>مسلِّم العهدة</label><input type="text" name="handed_by" value="{{ current_user.full_name }}"></div>
-      <div><label>تاريخ التسليم</label><input type="date" name="handed_at" value="{{ today }}"></div>
+      <div><label>{{ L('مسلِّم العهدة', 'Handed over by') }}</label><input type="text" name="handed_by" value="{{ current_user.full_name }}"></div>
+      <div><label>{{ L('تاريخ التسليم', 'Handed on') }}</label><input type="date" name="handed_at" value="{{ today }}"></div>
     </div>
-    <div><label>ملاحظات</label><input type="text" name="notes"></div>
-    <div class="checks" style="margin:8px 0"><label><input type="checkbox" name="notify" value="1" checked> إرسال إشعار للمستلم والقسم</label></div>
-    <button class="btn" type="submit">تسليم</button>
-    {% if back %}<a class="btn secondary" href="{{ back }}">رجوع إلى بطاقة الموظف</a>{% endif %}
+    <div><label>{{ L('ملاحظات', 'Notes') }}</label><input type="text" name="notes"></div>
+    <div class="checks" style="margin:8px 0"><label><input type="checkbox" name="notify" value="1" checked> {{ L('إرسال إشعار للمستلم والقسم', 'Notify the recipient and the department') }}</label></div>
+    <button class="btn" type="submit">{{ L('تسليم', 'Hand over') }}</button>
+    {% if back %}<a class="btn secondary" href="{{ back }}">{{ L('رجوع إلى بطاقة الموظف', 'Back to the employee card') }}</a>{% endif %}
   </form>
 </details>
 <details class="card panel">
-  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> إضافة قائمة أو استيراد ملف</summary>
+  <summary><i class="fa-solid fa-file-import" aria-hidden="true"></i> {{ L('إضافة قائمة أو استيراد ملف', 'Add a list or import a file') }}</summary>
   <form method="post" action="{{ url_for('custody.import_list') }}" enctype="multipart/form-data">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-    <label>الصق القائمة (سطر لكل عهدة، والأعمدة مفصولة بفاصلة أو Tab)</label>
-    <textarea name="text" rows="5" placeholder="{{ field_labels|join('، ') }}"></textarea>
-    <p class="hint">ترتيب الأعمدة: {{ field_labels|join(' ← ') }}. يُطابق المستلم مع سجل الموظفين بالبريد ثم بالاسم. لا تُرسل إشعارات عند الاستيراد.</p>
+    <label>{{ L('الصق القائمة (سطر لكل عهدة، والأعمدة مفصولة بفاصلة أو Tab)', 'Paste the list (one line per item, columns separated by commas or tabs)') }}</label>
+    <textarea name="text" rows="5" placeholder="{{ field_labels|join(L('، ', ', ')) }}"></textarea>
+    <p class="hint">{{ L('ترتيب الأعمدة:', 'Column order:') }} {{ field_labels|join(' ← ') }}{{ L('. يُطابق المستلم مع سجل الموظفين بالبريد ثم بالاسم. لا تُرسل إشعارات عند الاستيراد.', '. The recipient is matched to the employee register by email, then by name. No notifications are sent when importing.') }}</p>
     <div class="row">
-      <div><label>أو ملف Excel ‏(.xlsx) أو CSV</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
-      <div><label>القسم لمن لا قسم له</label><select name="department_id"><option value="">—</option>
+      <div><label>{{ L('أو ملف Excel ‏(.xlsx) أو CSV', 'or an Excel (.xlsx) or CSV file') }}</label><input type="file" name="file" accept=".xlsx,.xlsm,.csv,.txt,.tsv"></div>
+      <div><label>{{ L('القسم لمن لا قسم له', 'Department for rows without one') }}</label><select name="department_id"><option value="">—</option>
         {% for d in departments %}<option value="{{ d.id }}">{{ d.icon }} {{ d.name }}</option>{% endfor %}</select></div>
     </div>
-    <button class="btn" type="submit">استيراد</button>
+    <button class="btn" type="submit">{{ L('استيراد', 'Import') }}</button>
   </form>
 </details>
 </div>
 {% endif %}
 
-<div class="list-tools"><input type="search" data-list-search="t-cust" placeholder="بحث بالعهدة أو المستلم أو القسم" aria-label="بحث"></div>
+<div class="list-tools"><input type="search" data-list-search="t-cust" placeholder="{{ L('بحث بالعهدة أو المستلم أو القسم', 'Search by item, recipient or department') }}" aria-label="{{ L('بحث', 'Search') }}"></div>
 <form class="bulk-bar" method="post" action="{{ url_for('custody.bulk') }}" data-bulk-for="t-cust">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-  <span>المحدد: <b data-selected-count>0</b></span>
-  <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="مستلم الإرجاع" style="width:auto;padding:5px 8px">
-  <button class="btn small ok" name="action" value="return" data-confirm="تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟">استرجاع</button>
-  <button class="btn small secondary" name="action" value="handed">إعادة إلى «مسلمة»</button>
-  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print"><i class="fa-solid fa-print" aria-hidden="true"></i> طباعة الإيصالات</button>
-  <button class="btn small danger" name="action" value="delete" data-confirm="حذف {n} من سجلات العهد نهائيًا؟">حذف</button>
+  <span>{{ L('المحدد:', 'Selected:') }} <b data-selected-count>0</b></span>
+  <input type="text" name="returned_to" value="{{ current_user.full_name }}" aria-label="{{ L('مستلم الإرجاع', 'Received back by') }}" style="width:auto;padding:5px 8px">
+  <button class="btn small ok" name="action" value="return" data-confirm="{{ L('تسجيل استرجاع {n} من العهد وإرسال الإشعارات؟', 'Record the return of {n} item(s) and send the notifications?') }}">{{ L('استرجاع', 'Return') }}</button>
+  <button class="btn small secondary" name="action" value="handed">{{ L('إعادة إلى «مسلمة»', 'Back to "handed over"') }}</button>
+  <button class="btn small secondary" formaction="{{ url_for('custody.receipt') }}" formmethod="get" formtarget="_blank" name="action" value="print"><i class="fa-solid fa-print" aria-hidden="true"></i> {{ L('طباعة الإيصالات', 'Print receipts') }}</button>
+  <button class="btn small danger" name="action" value="delete" data-confirm="{{ L('حذف {n} من سجلات العهد نهائيًا؟', 'Permanently delete {n} custody record(s)?') }}">{{ L('حذف', 'Delete') }}</button>
 </form>
 <div class="card table-wrap"><table data-table id="t-cust">
-<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="تحديد الكل"></th>
-<th data-filter="text">الرقم</th><th data-filter="text">العهدة</th><th data-sort="num">الكمية</th><th data-filter="text">المستلم</th><th data-filter="select">القسم</th>
-<th data-filter="select">مسلّم العهدة</th><th data-sort="date">تاريخ التسليم</th><th data-filter="select">الحالة</th><th data-sort="date">تاريخ الإرجاع</th><th data-nosort></th></tr></thead>
+<thead><tr><th class="sel"><input type="checkbox" data-select-all aria-label="{{ L('تحديد الكل', 'Select all') }}"></th>
+<th data-filter="text">{{ L('الرقم', 'No.') }}</th><th data-filter="text">{{ L('العهدة', 'Item') }}</th><th data-sort="num">{{ L('الكمية', 'Quantity') }}</th><th data-filter="text">{{ L('المستلم', 'Recipient') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th>
+<th data-filter="select">{{ L('مسلّم العهدة', 'Handed over by') }}</th><th data-sort="date">{{ L('تاريخ التسليم', 'Handed on') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-sort="date">{{ L('تاريخ الإرجاع', 'Returned on') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for c in rows %}
-<tr data-id="{{ c.id }}"><td class="sel">{% if can_manage(c) %}<input type="checkbox" data-row-select value="{{ c.id }}" aria-label="تحديد {{ c.item }}">{% endif %}</td>
+<tr data-id="{{ c.id }}"><td class="sel">{% if can_manage(c) %}<input type="checkbox" data-row-select value="{{ c.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ c.item }}">{% endif %}</td>
 <td class="mono">{{ c.ref_code }}</td><td>{{ c.item }}{% if c.serial_no %}<br><small class="mono muted">{{ c.serial_no }}</small>{% endif %}</td><td>{{ c.quantity }}</td>
-<td>{{ c.recipient_name }}{% if not c.employee_id %} <span class="badge warn" title="غير مرتبط بسجل الموظفين">؟</span>{% endif %}</td>
+<td>{{ c.recipient_name }}{% if not c.employee_id %} <span class="badge warn" title="{{ L('غير مرتبط بسجل الموظفين', 'Not linked to the employee register') }}">؟</span>{% endif %}</td>
 <td>{{ c.department.name }}</td><td>{{ c.handed_by or '—' }}</td>
 <td class="mono">{{ c.handed_at or '—' }}</td>
 <td data-value="{{ c.status_label }}"><span class="badge {{ 'warn' if c.status == 'handed' else 'ok' }}">{{ c.status_label }}</span></td>
 <td class="mono">{{ c.returned_at or '—' }}{% if c.returned_to %}<br><small>{{ c.returned_to }}</small>{% endif %}</td>
-<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('custody.edit', cid=c.id) }}">تفاصيل</a>
-  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="إيصال" aria-label="إيصال"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
-{% else %}<tr class="empty-row"><td colspan="11" class="muted">لا توجد عهد مسجّلة.</td></tr>{% endfor %}
+<td style="white-space:nowrap"><a class="btn small secondary" href="{{ url_for('custody.edit', cid=c.id) }}">{{ L('تفاصيل', 'Details') }}</a>
+  <a class="btn small secondary" href="{{ url_for('custody.receipt', ids=c.id) }}" target="_blank" rel="noopener" title="{{ L('إيصال', 'Receipt') }}" aria-label="{{ L('إيصال', 'Receipt') }}"><i class="fa-solid fa-print" aria-hidden="true"></i></a></td></tr>
+{% else %}<tr class="empty-row"><td colspan="11" class="muted">{{ L('لا توجد عهد مسجّلة.', 'No custody recorded.') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

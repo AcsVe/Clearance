@@ -3,5 +3,5 @@
 {% block heading_wrap %}<h1 class="err-code">{{ code }}</h1>{% endblock %}
 {% block body %}
 <p class="sub">{{ message }}</p>
-<div class="err-actions"><a class="btn" href="{{ url_for('main.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> العودة للرئيسية</a></div>
+<div class="err-actions"><a class="btn" href="{{ url_for('main.index') }}"><i class="fa-solid fa-house" aria-hidden="true"></i> {{ L('العودة للرئيسية', 'Back to home') }}</a></div>
 {% endblock %}

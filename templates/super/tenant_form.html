@@ -1,45 +1,45 @@
 {% extends 'super/_base.html' %}
 {% block content %}
-<h1>{{ 'منظمة جديدة' if new else 'تعديل: ' ~ t.name_ar }}</h1>
+<h1>{{ L('منظمة جديدة', 'New organization') if new else L('تعديل: ', 'Edit: ') ~ t.name_ar }}</h1>
 <div class="card"><form method="post" autocomplete="off">
   <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
   <div class="row">
-    <div><label>الاسم بالعربية</label><input type="text" name="name_ar" value="{{ t.name_ar or '' }}" required></div>
-    <div><label>الاسم بالإنجليزية</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
-    <div><label>المعرّف (slug)</label><input type="text" name="slug" value="{{ t.slug or '' }}" dir="ltr" required></div>
-    <div><label>النطاق (اختياري)</label><input type="text" name="domain" value="{{ t.domain or '' }}" dir="ltr"></div>
-    <div><label>اللون</label><input type="text" name="accent_color" value="{{ t.accent_color or '#0C67EC' }}" dir="ltr"></div>
+    <div><label>{{ L('الاسم بالعربية', 'Name in Arabic') }}</label><input type="text" name="name_ar" value="{{ t.name_ar or '' }}" required></div>
+    <div><label>{{ L('الاسم بالإنجليزية', 'Name in English') }}</label><input type="text" name="name_en" value="{{ t.name_en or '' }}" dir="ltr"></div>
+    <div><label>{{ L('المعرّف (slug)', 'Identifier (in the address)') }}</label><input type="text" name="slug" value="{{ t.slug or '' }}" dir="ltr" required></div>
+    <div><label>{{ L('النطاق (اختياري)', 'Domain (optional)') }}</label><input type="text" name="domain" value="{{ t.domain or '' }}" dir="ltr"></div>
+    <div><label>{{ L('اللون', 'Colour') }}</label><input type="text" name="accent_color" value="{{ t.accent_color or '#0C67EC' }}" dir="ltr"></div>
   </div>
   {% if new %}
-  <h2>مدير المنظمة الأول</h2>
+  <h2>{{ L('مدير المنظمة الأول', 'First organization administrator') }}</h2>
   <div class="row">
-    <div><label>اسم المستخدم</label><input type="text" name="admin_username" dir="ltr" required></div>
-    <div><label>الاسم الكامل</label><input type="text" name="admin_full_name" required></div>
-    <div><label>البريد</label><input type="email" name="admin_email" dir="ltr"></div>
-    <div><label>كلمة مرور مؤقتة</label><input type="password" name="admin_password" autocomplete="new-password" dir="ltr" required></div>
+    <div><label>{{ L('اسم المستخدم', 'User name') }}</label><input type="text" name="admin_username" dir="ltr" required></div>
+    <div><label>{{ L('الاسم الكامل', 'Full name') }}</label><input type="text" name="admin_full_name" required></div>
+    <div><label>{{ L('البريد', 'Email') }}</label><input type="email" name="admin_email" dir="ltr"></div>
+    <div><label>{{ L('كلمة مرور مؤقتة', 'Temporary password') }}</label><input type="password" name="admin_password" autocomplete="new-password" dir="ltr" required></div>
   </div>
   {% else %}
   <div class="checks">
-    <label><input type="checkbox" name="is_active" value="1" {% if t.is_active %}checked{% endif %}> المنظمة فعّالة</label>
-    <label><input type="checkbox" name="ocr_cloud_enabled" value="1" {% if t.ocr_cloud_enabled %}checked{% endif %}> السماح بقراءة صور العهد الورقية عبر خدمة سحابية</label>
+    <label><input type="checkbox" name="is_active" value="1" {% if t.is_active %}checked{% endif %}> {{ L('المنظمة فعّالة', 'The organization is active') }}</label>
+    <label><input type="checkbox" name="ocr_cloud_enabled" value="1" {% if t.ocr_cloud_enabled %}checked{% endif %}> {{ L('السماح بقراءة صور العهد الورقية عبر خدمة سحابية', 'Allow reading photos of paper custody records through a cloud service') }}</label>
   </div><br>
   {% endif %}
-  <button class="btn" type="submit">حفظ</button>
+  <button class="btn" type="submit">{{ L('حفظ', 'Save') }}</button>
 </form></div>
 {% if not new and users %}
-<div class="card" id="password"><h2>كلمة مرور جديدة لحساب في المنظمة</h2>
-  <p>لمن نسي كلمة مروره ولم يصله رابط البريد: يُفك قفل الحساب ويُفعَّل، ويخرج من أي جلسة مفتوحة.</p>
+<div class="card" id="password"><h2>{{ L('كلمة مرور جديدة لحساب في المنظمة', 'New password for an account in the organization') }}</h2>
+  <p>{{ L('لمن نسي كلمة مروره ولم يصله رابط البريد: يُفك قفل الحساب ويُفعَّل، ويخرج من أي جلسة مفتوحة.', 'For someone who forgot the password and got no email link: the account is unlocked, activated and signed out of any open session.') }}</p>
   <form method="post" action="{{ url_for('super.tenant_user_password', tenant_id=t.id) }}" autocomplete="off">
     <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <div class="row">
-      <div><label for="pw_user">الحساب</label><select id="pw_user" name="user_id" required>
-        {% for u in users %}<option value="{{ u.id }}">{{ u.username }} — {{ u.full_name }}{% if u.admin %} (مدير){% endif %}{% if not u.active %} (موقوف){% endif %}{% if u.locked %} (مقفل){% endif %}</option>{% endfor %}
+      <div><label for="pw_user">{{ L('الحساب', 'Account') }}</label><select id="pw_user" name="user_id" required>
+        {% for u in users %}<option value="{{ u.id }}">{{ u.username }} — {{ u.full_name }}{% if u.admin %} {{ L('(مدير)', '(administrator)') }}{% endif %}{% if not u.active %} {{ L('(موقوف)', '(inactive)') }}{% endif %}{% if u.locked %} {{ L('(مقفل)', '(locked)') }}{% endif %}</option>{% endfor %}
       </select></div>
-      <div><label for="pw1">كلمة المرور الجديدة</label><input id="pw1" type="password" name="new_password" autocomplete="new-password" dir="ltr" required minlength="10"></div>
-      <div><label for="pw2">أعد كتابتها</label><input id="pw2" type="password" name="new_password2" autocomplete="new-password" dir="ltr" required minlength="10"></div>
+      <div><label for="pw1">{{ L('كلمة المرور الجديدة', 'New password') }}</label><input id="pw1" type="password" name="new_password" autocomplete="new-password" dir="ltr" required minlength="10"></div>
+      <div><label for="pw2">{{ L('أعد كتابتها', 'Type it again') }}</label><input id="pw2" type="password" name="new_password2" autocomplete="new-password" dir="ltr" required minlength="10"></div>
     </div>
-    <div class="checks"><label><input type="checkbox" name="must_change" value="1"> يُطلب من صاحب الحساب تغييرها عند أول دخول</label></div><br>
-    <button class="btn" type="submit">تعيين كلمة المرور</button>
+    <div class="checks"><label><input type="checkbox" name="must_change" value="1"> {{ L('يُطلب من صاحب الحساب تغييرها عند أول دخول', 'The account owner must change it at the first sign-in') }}</label></div><br>
+    <button class="btn" type="submit">{{ L('تعيين كلمة المرور', 'Set the password') }}</button>
   </form>
 </div>
 {% endif %}
