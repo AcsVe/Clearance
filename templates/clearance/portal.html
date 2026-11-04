@@ -25,7 +25,7 @@
 <thead><tr><th data-filter="text">الموظف</th><th data-filter="text">الرقم المرجعي</th><th data-filter="select">القسم</th><th>الموقّع</th><th data-sort="date">التاريخ</th><th data-nosort></th></tr></thead>
 <tbody>{% for r in answered %}
 <tr><td>{{ r.form.employee_name }}</td><td class="mono">{{ r.form.ref_code }}</td><td>{{ r.department.name }}</td><td>{{ r.responded_by or '—' }}</td>
-<td class="mono">{{ r.responded_at.strftime('%Y-%m-%d') if r.responded_at else '—' }}</td>
+<td class="mono">{{ (r.responded_at|local('%Y-%m-%d')) if r.responded_at else '—' }}</td>
 <td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=r.form.id) }}">فتح / تعديل</a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">—</td></tr>{% endfor %}
 </tbody></table></div>

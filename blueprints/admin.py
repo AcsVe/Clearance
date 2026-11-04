@@ -454,8 +454,9 @@ def audit_log():
     if action:
         q = q.filter(AuditLog.action.like(f'{action}%'))
     rows = q.order_by(AuditLog.id.desc()).offset((page - 1) * PAGE_SIZE).limit(PAGE_SIZE + 1).all()
+    from utils.audit_labels import GROUPS
     return render_template('admin/audit.html', rows=rows[:PAGE_SIZE], page=page,
-                           has_next=len(rows) > PAGE_SIZE, action=action)
+                           has_next=len(rows) > PAGE_SIZE, action=action, groups=sorted(GROUPS.items(), key=lambda kv: kv[1]))
 
 
 @admin_bp.route('/email-log')

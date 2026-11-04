@@ -32,7 +32,7 @@
   <tr><td><strong>{{ r.department.icon }} {{ r.department.name }}</strong></td>
   <td class="{{ {'cleared':'cleared','held':'held'}.get(r.status, '') }}">{{ r.status_label }}</td>
   <td>{{ r.note or '-' }}</td>
-  <td>{{ r.responded_by or '' }}{% if r.responded_at %}<br><small>{{ r.responded_at.strftime('%Y-%m-%d') }}</small>{% endif %}</td></tr>
+  <td>{{ r.responded_by or '' }}{% if r.responded_at %}<br><small>{{ (r.responded_at|local('%Y-%m-%d')) }}</small>{% endif %}</td></tr>
   {% endfor %}</tbody>
 </table>
 <div class="signatures"><div class="sig-box">شؤون الموظفين</div><div class="sig-box">المحاسبة</div><div class="sig-box">الموظف</div></div>

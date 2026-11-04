@@ -74,6 +74,7 @@ def create_app(overrides=None):
 
     _register_request_hooks(app)
     _register_pwa_routes(app)
+    _register_filters(app)
     _register_error_handlers(app)
 
     if app.config['AUTO_MIGRATE'] and not app.config.get('TESTING'):
@@ -154,6 +155,27 @@ def _register_request_hooks(app):
             'accent': (tenant.accent_color if tenant else app.config['ACCENT_COLOR']),
             'now_year': _amman_year(),
         }
+
+
+def _register_filters(app):
+    """local: وقت محفوظ بتوقيت UTC يُعرض بتوقيت المدرسة (Asia/Amman)، بالصيغة 2026-12-31 14:30."""
+    from datetime import date, datetime, timezone
+    from zoneinfo import ZoneInfo
+
+    def local(value, fmt='%Y-%m-%d %H:%M'):
+        if not value:
+            return ''
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                value = value.replace(tzinfo=timezone.utc)
+            value = value.astimezone(ZoneInfo(app.config.get('TIMEZONE') or 'Asia/Amman'))
+        elif not isinstance(value, date):
+            return str(value)
+        return value.strftime(fmt)
+    app.jinja_env.filters['local'] = local
+    from utils import audit_labels
+    app.jinja_env.globals.update(audit_action=audit_labels.action_label, audit_group=audit_labels.group_label,
+                                 audit_entity=audit_labels.entity_label, audit_details=audit_labels.details_lines)
 
 
 def _amman_year():

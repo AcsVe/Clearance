@@ -2,18 +2,21 @@
 {% block title %}سجل التدقيق{% endblock %}
 {% block content %}
 <div class="toolbar"><h1>سجل التدقيق</h1>
-<form method="get" style="display:flex;gap:8px"><input type="text" name="action" value="{{ action }}" placeholder="مثال: auth. أو user." dir="ltr">
-<button class="btn secondary" type="submit">تصفية</button></form></div>
-<p class="hint">سجل التدقيق للقراءة فقط ولا يمكن حذف سطوره. التصفية في الأعمدة تشمل الصفحة الحالية، وحقل البحث أعلاه يبحث في السجل كله.</p>
+<form method="get" class="inline-filter"><label class="sr-only" for="grp">نوع العمليات</label>
+<select name="action" id="grp"><option value="">كل العمليات</option>
+{% for k, v in groups %}<option value="{{ k }}."{{ ' selected' if action == k ~ '.' }}>{{ v }}</option>{% endfor %}</select>
+<button class="btn secondary" type="submit">عرض</button></form></div>
+<p class="hint">سجل التدقيق للقراءة فقط ولا يمكن حذف سطوره. الأوقات بتوقيت عمّان. التصفية في الأعمدة تشمل الصفحة الحالية، واختيار نوع العمليات أعلاه يشمل السجل كله.</p>
 <div class="card table-wrap"><table data-table id="t-audit">
-<thead><tr><th data-filter="text">الوقت (UTC)</th><th data-filter="select">المنفّذ</th><th data-filter="select">الإجراء</th><th data-filter="text">السجل</th><th data-filter="text" data-nosort>التفاصيل</th><th data-filter="text">IP</th></tr></thead>
+<thead><tr><th data-filter="text">الوقت</th><th data-filter="select">المنفّذ</th><th data-filter="select">العملية</th><th data-filter="text">السجل</th><th data-filter="text" data-nosort>التفاصيل</th><th data-filter="text">عنوان الشبكة</th></tr></thead>
 <tbody>{% for r in rows %}
-<tr><td class="mono">{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td><td>{{ r.actor }}</td>
-<td class="mono">{{ r.action }}</td><td class="mono">{{ r.entity_type or '' }} {{ r.entity_id or '' }}</td>
-<td>{% if r.details %}<pre class="details">{{ r.details|tojson }}</pre>{% endif %}</td><td class="mono">{{ r.ip_address or '' }}</td></tr>
+<tr><td class="nowrap">{{ r.created_at|local }}</td><td>{{ r.actor }}</td>
+<td>{{ audit_action(r.action) }}</td><td>{{ audit_entity(r.entity_type, r.entity_id) }}</td>
+<td>{% if r.details %}<ul class="kv">{% for k, v in audit_details(r.details) %}<li><b>{{ k }}:</b> <bdi>{{ v }}</bdi></li>{% endfor %}</ul>{% endif %}</td>
+<td class="mono">{{ r.ip_address or '' }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">لا توجد سجلات</td></tr>{% endfor %}
 </tbody></table></div>
-<div style="display:flex;gap:8px">
+<div class="pager">
 {% if page > 1 %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page-1, action=action) }}">السابق</a>{% endif %}
 {% if has_next %}<a class="btn secondary" href="{{ url_for('admin.audit_log', page=page+1, action=action) }}">التالي</a>{% endif %}
 </div>

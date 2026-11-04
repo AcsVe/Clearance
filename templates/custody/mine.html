@@ -11,6 +11,6 @@
 {% if forms %}
 <h2 style="margin:16px 0 10px">نماذج براءة الذمة</h2>
 <div class="card table-wrap"><table><thead><tr><th>الرقم المرجعي</th><th>التاريخ</th><th>الحالة</th></tr></thead>
-<tbody>{% for f in forms %}<tr><td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td><td class="mono">{{ f.created_at.strftime('%Y-%m-%d') }}</td><td>{{ f.status_label }}</td></tr>{% endfor %}</tbody></table></div>
+<tbody>{% for f in forms %}<tr><td class="mono"><a href="{{ url_for('clearance.view', form_id=f.id) }}">{{ f.ref_code }}</a></td><td class="mono">{{ (f.created_at|local('%Y-%m-%d')) }}</td><td>{{ f.status_label }}</td></tr>{% endfor %}</tbody></table></div>
 {% endif %}
 {% endblock %}

@@ -55,7 +55,7 @@
         {% for g, items in groups|dictsort %}<div><b>{{ g }}:</b> {{ items|join('، ') }}</div>
         {% else %}<span class="muted">لا مهام مسندة — أسند دورًا من «تعديل».</span>{% endfor %}
       </div>
-      <small class="muted">آخر دخول: {{ u.last_login.strftime('%Y-%m-%d %H:%M') if u.last_login else 'لم يدخل بعد' }}</small>
+      <small class="muted">آخر دخول: {{ (u.last_login|local('%Y-%m-%d %H:%M')) if u.last_login else 'لم يدخل بعد' }}</small>
       <div class="actions">
         <a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">تعديل</a>
         {% if u.locked_until and u.locked_until > now %}
@@ -85,7 +85,7 @@
   <td data-value="{{ u.roles|map(attribute='name')|join('، ') }}">{% for r in u.roles %}<span class="badge">{{ r.name }}</span> {% endfor %}</td>
   <td>{% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}، {% endif %}{% endfor %}</td>
   <td data-value="{% if not u.is_active %}موقوف{% elif u.locked_until and u.locked_until > now %}مقفل مؤقتًا{% else %}فعّال{% endif %}">{{ status(u) }}</td>
-  <td class="mono" data-value="{{ u.last_login.isoformat() if u.last_login else '' }}">{{ u.last_login.strftime('%Y-%m-%d') if u.last_login else '—' }}</td>
+  <td class="mono" data-value="{{ u.last_login.isoformat() if u.last_login else '' }}">{{ (u.last_login|local('%Y-%m-%d')) if u.last_login else '—' }}</td>
   <td><a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">تعديل</a></td>
 </tr>
 {% else %}<tr class="empty-row"><td colspan="9" class="muted">لا يوجد مستخدمون</td></tr>{% endfor %}
