@@ -34,7 +34,7 @@ app = create_app({'MAIL_BACKEND': 'memory', 'WTF_CSRF_ENABLED': False, 'SESSION_
 with app.app_context():
     from flask_migrate import upgrade
     upgrade(directory=os.path.join(ROOT, 'migrations'))
-    t = make_tenant('raed', 'مدرسة الرائد العربي')
+    t = make_tenant('raed', 'مدرسة تجريبية')
     it = make_dept(t, 'IT', 'تقنية المعلومات', emails='it@raed.test')
     lib = make_dept(t, 'LIB', 'المكتبة', emails='lib@raed.test')
     hr = make_dept(t, 'HR', 'شؤون الموظفين', 'HR', emails='hr@raed.test')
