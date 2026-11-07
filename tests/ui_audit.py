@@ -123,7 +123,7 @@ AUDIT_JS = r"""(args) => {
 # يرصد: نصاً يشبه الكود (أسماء متغيرات وملفات وقيم برمجية)، وكلمات عامية أو دخيلة في الواجهة العربية، ونص إرشاد بالإنجليزية
 # في الواجهة العربية أو بالعربية في الإنجليزية، وصورة بلا نص بديل.
 LANG_JS = r"""(args) => {
-  const [ui, okWords, checkArabic] = args;   // checkArabic: الواجهة الإنجليزية ببيانات إنجليزية
+  const [ui, okWords, checkArabic, scopeSel] = args;   // checkArabic: الواجهة الإنجليزية ببيانات إنجليزية
   const out = []; const seen = new Set();
   const add = (k, m) => { if (!seen.has(k)) { seen.add(k); out.push(m.slice(0, 150)); } };
   const AR = /[؀-ۿ]/;
@@ -136,10 +136,12 @@ LANG_JS = r"""(args) => {
     [/\b[A-Z][A-Z0-9]*_[A-Z0-9_]+\b/, 'variable name'],
     [/\b[a-z]+[A-Z][A-Za-z]+\b/, 'camelCase'],
     [/\{\{|\}\}|\{%|%\}|\$\{|<\/?[a-z]+>/, 'template code'],
-    [/^(undefined|null|NaN|None|True|False)$|\b(undefined|NaN|Traceback|TypeError|KeyError|ValueError)\b|\[object /, 'program value'],
+    [/^(undefined|null|NaN)$|\b(undefined|NaN|Traceback|TypeError|KeyError|ValueError)\b|\[object /, 'program value'],
     [/\b[\w-]+\.(py|bat|env|db|sqlite|json|js|css|html|ps1|sql|log|ini|cfg)\b/i, 'file name'],
     [/\b(HTTP|Error|errno|status)\s*\d{3}\b|\bSQLITE_|\bOperationalError\b/i, 'error code'],
   ];
+  // None/True/False كلمات إنجليزية سليمة في الواجهة الإنجليزية؛ وفي العربية تعني قيمة برمجية تسرّبت
+  if (ui === 'ar') CODE.push([/^(None|True|False)$/, 'program value']);
   const codeLike = (t) => { t = clean(t); for (const [re, name] of CODE) { const m = t.match(re); if (m && !ok.has(m[0])) return `${name} «${m[0]}»`; } return null; };
   // عامي أو دخيل (القاعدة: «إذا/إن» لا «لو»، «فقط» لا «بس»، «الخادم» لا «السيرفر»، «الهاتف» لا «الموبايل»...)
   const COLLOQ = /(?:^|[\s،؛.؟!«(\/])(لو|بس|اللي|إللي|فاضي|فاضية|هيك|شو|مش|كمان|هلق|هلأ|منيح|ليش|وين|هاي|هاد|هادا|السيرفر|سيرفر|الموبايل|موبايل|تيمز|الباسورد|باسورد|يوزر|اليوزر|اللوجو|لوجو|الداتا|داتا|لينك|اللينك|فايل|الفايل|ايميل|إيميل|الإيميل|الايميل|اوكي|أوكي|نزّل|نزّلها|حمّلها|سيستم|السيستم|أبديت|ابديت)(?=$|[\s،؛.؟!»):\/])/;
@@ -159,7 +161,8 @@ LANG_JS = r"""(args) => {
       add('a' + where + t, `Arabic in ${where} of the English interface «${t.slice(0, 60)}» ${tag}`);
     }
   };
-  document.querySelectorAll('body *').forEach((el) => {
+  const scope = (scopeSel && document.querySelector(scopeSel)) || document.body;
+  scope.querySelectorAll('*').forEach((el) => {
     if (el.closest('script,style,code,pre,kbd,noscript,template,[data-content],[data-raw]')) return;
     const s = getComputedStyle(el); if (s.display === 'none' && !el.closest('select')) return;
     [...el.childNodes].forEach((n) => { if (n.nodeType === 3) check(el, 'text', n.textContent); });
