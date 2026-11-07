@@ -7,7 +7,7 @@
   <h1><i class="fa-solid fa-link-slash" aria-hidden="true"></i> {{ L('الرابط غير صالح', 'The link is not valid') }}</h1><p class="muted">{{ L('تأكد من نسخ الرابط كاملًا من البريد، أو ادخل إلى النظام وافتح «بوابة الأقسام».', 'Make sure you copied the whole link from the email, or sign in and open "Departments portal".') }}</p></div>
 {% else %}
 <div class="card sign-card" style="max-width:720px;margin:10px auto">
-  <h1>{{ resp.department.icon }} {{ resp.department.name }} {{ L('— توقيع براءة الذمة', '— clearance signature') }}</h1>
+  <h1>{{ resp.department.icon }} <bdi>{{ resp.department.name }}</bdi> {{ L('— توقيع براءة الذمة', '— clearance signature') }}</h1>
   <div class="info-grid">
     <div><small>{{ L('الموظف', 'Employee') }}</small><b>{{ f.employee_name }}</b></div>
     <div><small>{{ L('الرقم الوظيفي', 'Employee number') }}</small><b class="mono">{{ f.employee_number or '—' }}</b></div>
@@ -33,7 +33,7 @@
     <label>{{ L('اسم الموقّع *', 'Signer name *') }}</label><input type="text" name="by_name" value="{{ resp.responded_by or (current_user.full_name if current_user else resp.department.manager_name or '') }}" required>
     <button class="btn" type="submit" style="margin-top:12px"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> {{ L('حفظ الرد', 'Save the reply') }}</button>
   </form>
-  {% if resp.responded_at %}<p class="hint">{{ L('آخر رد:', 'Last reply:') }} {{ resp.responded_by }} — {{ (resp.responded_at|local('%Y-%m-%d %H:%M')) }} {{ L('(بتوقيت عمّان). يمكنكم تعديله ما دام النموذج مفتوحًا.', '(Amman time). You can change it while the form is open.') }}</p>{% endif %}
+  {% if resp.responded_at %}<p class="hint">{{ L('آخر رد:', 'Last reply:') }} <bdi>{{ resp.responded_by }}</bdi> — <span dir="ltr">{{ resp.responded_at|local('%Y-%m-%d %H:%M') }}</span> {{ L('(بتوقيت عمّان). يمكنكم تعديله ما دام النموذج مفتوحًا.', '(Amman time). You can change it while the form is open.') }}</p>{% endif %}
   {% endif %}
 </div>
 {% endif %}

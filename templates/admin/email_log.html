@@ -20,7 +20,7 @@
 <tr data-id="{{ r.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ r.id }}" aria-label="{{ L('تحديد', 'Select') }}"></td><td class="mono">{{ (r.created_at|local('%Y-%m-%d %H:%M')) }}</td>
 <td data-value="{{ {'sent':L('أُرسل', 'Sent'),'skipped':L('لم يُرسل', 'Not sent')}.get(r.status,L('فشل', 'Failed')) }}">{% if r.status == 'sent' %}<span class="badge ok">{{ L('أُرسل', 'Sent') }}</span>{% elif r.status == 'skipped' %}<span class="badge warn">{{ L('لم يُرسل', 'Not sent') }}</span>{% else %}<span class="badge bad">{{ L('فشل', 'Failed') }}</span>{% endif %}
 {% if r.status != 'sent' and not r.acknowledged %} <span class="badge warn">{{ L('جديد', 'New') }}</span>{% endif %}</td>
-<td class="mono">{{ r.recipients }}</td><td>{{ r.subject }}</td><td class="muted">{{ r.error or '' }}</td></tr>
+<td class="mono">{{ r.recipients }}</td><td data-content dir="auto">{{ r.subject }}</td><td class="muted">{{ r.error or '' }}</td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">{{ L('لا توجد رسائل', 'No messages') }}</td></tr>{% endfor %}
 </tbody></table></div>
 {% endblock %}

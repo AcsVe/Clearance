@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ L('الرئيسية', 'Home') }}{% endblock %}
 {% block content %}
-<h1>{{ L('مرحبًا', 'Welcome,') }} {{ current_user.full_name }}</h1>
+<h1>{{ L('مرحبًا', 'Welcome,') }} <bdi>{{ current_user.full_name }}</bdi></h1>
 {% if current_user.departments %}
 <p class="muted" style="margin-bottom:14px">{{ L('أقسامك:', 'Your departments:') }} {% for d in current_user.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ L('، ', ', ') }}{% endif %}{% endfor %}</p>
 {% endif %}

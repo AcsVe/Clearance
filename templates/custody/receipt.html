@@ -33,7 +33,7 @@
     <div class="sig-box">{{ L('المسترجِع', 'Returned by') if c.status == 'returned' else L('المستلم', 'Recipient') }}: {{ c.recipient_name }}</div>
     <div class="sig-box">{{ L('مستلم الإرجاع', 'Received back by') if c.status == 'returned' else L('مسلِّم العهدة', 'Handed over by') }}: {{ c.returned_to if c.status == 'returned' else (c.handed_by or '') }}</div>
   </div>
-  <div class="footer">{{ tenant_name }} — {{ current_tenant.form_footer or '' }}</div>
+  <div class="footer" data-content><bdi>{{ tenant_name }}</bdi> — <bdi>{{ current_tenant.form_footer or '' }}</bdi></div>
 </section>
 {% endfor %}
 <p class="noprint"><button type="button" data-print>{{ L('🖨 طباعة', '🖨 Print') }}</button></p>

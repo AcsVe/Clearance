@@ -30,7 +30,7 @@ FIELDS = [
     ('hire_date', ['تاريخ التعيين', 'hire_date', 'hired']),
 ]
 FIELD_LABELS = ['الاسم', 'الرقم الوظيفي', 'البريد', 'الهاتف', 'القسم', 'المسمى الوظيفي', 'تاريخ التعيين']
-FIELD_LABELS_EN = ['name', 'number', 'email', 'phone', 'department', 'job_title', 'hire_date']   # also accepted on import
+FIELD_LABELS_EN = ['name', 'number', 'email', 'phone', 'department', 'job title', 'hire date']   # also accepted on import
 
 
 def _get(emp_id):

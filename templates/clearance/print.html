@@ -32,11 +32,11 @@
   <tr><td><strong>{{ r.department.icon }} {{ r.department.name }}</strong></td>
   <td class="{{ {'cleared':'cleared','held':'held'}.get(r.status, '') }}">{{ r.status_label }}</td>
   <td>{{ r.note or '-' }}</td>
-  <td>{{ r.responded_by or '' }}{% if r.responded_at %}<br><small>{{ (r.responded_at|local('%Y-%m-%d')) }}</small>{% endif %}</td></tr>
+  <td><bdi>{{ r.responded_by or '' }}</bdi>{% if r.responded_at %}<br><small dir="ltr">{{ (r.responded_at|local('%Y-%m-%d')) }}</small>{% endif %}</td></tr>
   {% endfor %}</tbody>
 </table>
 <div class="signatures"><div class="sig-box">{{ L('شؤون الموظفين', 'Human resources') }}</div><div class="sig-box">{{ L('المحاسبة', 'Finance') }}</div><div class="sig-box">{{ L('الموظف', 'Employee') }}</div></div>
-<div class="footer">{{ current_tenant.form_footer or 'نموذج ر ع ع - 1 2026' }}</div>
+<div class="footer" data-content><bdi>{{ current_tenant.form_footer or 'نموذج ر ع ع - 1 2026' }}</bdi></div>
 <p class="noprint"><button type="button" data-print>{{ L('🖨 طباعة', '🖨 Print') }}</button></p>
 </body>
 </html>

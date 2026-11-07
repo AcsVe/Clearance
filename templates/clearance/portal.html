@@ -24,7 +24,7 @@
 <div class="card table-wrap"><table data-table id="t-done">
 <thead><tr><th data-filter="text">{{ L('الموظف', 'Employee') }}</th><th data-filter="text">{{ L('الرقم المرجعي', 'Reference') }}</th><th data-filter="select">{{ L('القسم', 'Department') }}</th><th>{{ L('الموقّع', 'Signed by') }}</th><th data-sort="date">{{ L('التاريخ', 'Date') }}</th><th data-nosort></th></tr></thead>
 <tbody>{% for r in answered %}
-<tr><td>{{ r.form.employee_name }}</td><td class="mono">{{ r.form.ref_code }}</td><td>{{ r.department.name }}</td><td>{{ r.responded_by or '—' }}</td>
+<tr><td><bdi>{{ r.form.employee_name }}</bdi></td><td class="mono">{{ r.form.ref_code }}</td><td><bdi>{{ r.department.name }}</bdi></td><td><bdi>{{ r.responded_by or '—' }}</bdi></td>
 <td class="mono">{{ (r.responded_at|local('%Y-%m-%d')) if r.responded_at else '—' }}</td>
 <td><a class="btn small secondary" href="{{ url_for('clearance.view', form_id=r.form.id) }}">{{ L('فتح / تعديل', 'Open / edit') }}</a></td></tr>
 {% else %}<tr class="empty-row"><td colspan="6" class="muted">—</td></tr>{% endfor %}

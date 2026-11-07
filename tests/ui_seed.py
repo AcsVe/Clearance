@@ -1,6 +1,7 @@
 """بيانات تجربة لمراجعة المظهر (tests/ui_audit.py): منظمة، وأقسام، ومستخدمون، وموظفون، وعهد، ونماذج براءة ذمة.
 
-    python tests/ui_seed.py <ملف القاعدة>
+    python tests/ui_seed.py <ملف القاعدة> [ar|en]
+اللغة الثانية لغة البيانات (الأسماء والأقسام والعهد)، لفحص الواجهة الإنجليزية ببيانات إنجليزية.
 يطبع معرّفات JSON يستخدمها ui_audit.py.
 """
 import json
@@ -8,6 +9,7 @@ import os
 import sys
 
 DB = sys.argv[1]
+EN = len(sys.argv) > 2 and sys.argv[2] == 'en'
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.insert(0, ROOT)
 os.environ['TEST_DATABASE_URL'] = 'sqlite:///' + DB.replace('\\', '/')
@@ -34,27 +36,41 @@ app = create_app({'MAIL_BACKEND': 'memory', 'WTF_CSRF_ENABLED': False, 'SESSION_
 with app.app_context():
     from flask_migrate import upgrade
     upgrade(directory=os.path.join(ROOT, 'migrations'))
-    t = make_tenant('raed', 'مدرسة تجريبية')
-    it = make_dept(t, 'IT', 'تقنية المعلومات', emails='it@raed.test')
-    lib = make_dept(t, 'LIB', 'المكتبة', emails='lib@raed.test')
-    hr = make_dept(t, 'HR', 'شؤون الموظفين', 'HR', emails='hr@raed.test')
-    fin = make_dept(t, 'FIN', 'المحاسبة', 'Finance', emails='fin@raed.test')
+    L = (lambda ar, en: en if EN else ar)
+    t = make_tenant('raed', L('مدرسة تجريبية', 'Trial School'))
+    if EN:
+        t.name_en = 'Trial School'
+        t.form_footer = 'Form CL-1 2026'
+    it = make_dept(t, 'IT', L('تقنية المعلومات', 'Information Technology'), emails='it@raed.test')
+    lib = make_dept(t, 'LIB', L('المكتبة', 'Library'), emails='lib@raed.test')
+    hr = make_dept(t, 'HR', L('شؤون الموظفين', 'Human Resources'), 'HR', emails='hr@raed.test')
+    fin = make_dept(t, 'FIN', L('المحاسبة', 'Accounting'), 'Finance', emails='fin@raed.test')
     make_user(t, 'admin', ('admin',), email='admin@raed.test')
     make_user(t, 'hr1', ('hr',), (hr,), email='hr1@raed.test')
     make_user(t, 'mgr', ('dept_manager',), (it,), email='mgr@raed.test')
+    if EN:
+        from models import User
+        with tenant_context(t.id):
+            for u in User.query.all():
+                u.full_name = f'User {u.username}'
+            db.session.commit()
+    db.session.commit()
     db.session.add(SuperAdmin(username='root', password_hash=hash_password(PASSWORD)))
     db.session.commit()
     with tenant_context(t.id):
         emps = []
-        for i, (name, dept) in enumerate([('منى خالد', it), ('سامي عبد الله', lib), ('ريم حسن', it), ('خالد يوسف', hr),
-                                          ('هبة علي', lib), ('عمر سليم', it)]):
+        for i, (name, dept) in enumerate((
+                [('Mona Khaled', it), ('Sami Abdullah', lib), ('Reem Hasan', it), ('Khaled Yousef', hr),
+                 ('Hiba Ali', lib), ('Omar Saleem', it)] if EN else
+                [('منى خالد', it), ('سامي عبد الله', lib), ('ريم حسن', it), ('خالد يوسف', hr),
+                 ('هبة علي', lib), ('عمر سليم', it)])):
             e = Employee(full_name=name, employee_number=str(100 + i), email=None if i == 5 else f'e{i}@raed.test',
-                         department_id=dept, job_title='معلم' if i % 2 else 'إداري')
+                         department_id=dept, job_title=L('معلم', 'Teacher') if i % 2 else L('إداري', 'Administrator'))
             db.session.add(e)
             emps.append(e)
         db.session.commit()
-        for i, (item, emp) in enumerate([('حاسوب محمول', emps[0]), ('مفتاح المختبر', emps[0]), ('كتاب مرجعي', emps[1]),
-                                         ('جهاز عرض', emps[2])]):
+        for i, (item, emp) in enumerate([(L('حاسوب محمول', 'Laptop'), emps[0]), (L('مفتاح المختبر', 'Lab key'), emps[0]),
+                                         (L('كتاب مرجعي', 'Reference book'), emps[1]), (L('جهاز عرض', 'Projector'), emps[2])]):
             db.session.add(Custody(ref_code=f'CUST-UI{i}', item=item, recipient_name=emp.full_name, employee_id=emp.id,
                                    department_id=emp.department_id, status='handed' if i != 3 else 'returned'))
         db.session.commit()
@@ -68,10 +84,10 @@ with app.app_context():
         tok = [r.token for r in forms[0].responses if r.department_id == lib][0]
         form_ids = [f.id for f in forms]
     anon = app.test_client()
-    anon.post(f'/sign/{tok}', data={'status': 'cleared', 'note': '', 'by_name': 'أمين المكتبة'})
+    anon.post(f'/sign/{tok}', data={'status': 'cleared', 'note': '', 'by_name': L('أمين المكتبة', 'Librarian')})
     with tenant_context(t.id):
         it_tok = [r.token for r in db.session.get(ClearanceForm, form_ids[1]).responses if r.department_id == it][0]
         cid = Custody.query.first().id
-    anon.post(f'/sign/{it_tok}', data={'status': 'held', 'note': 'إرجاع الحاسوب', 'by_name': 'مسؤول التقنية'})
+    anon.post(f'/sign/{it_tok}', data={'status': 'held', 'note': L('إرجاع الحاسوب', 'Return the laptop'), 'by_name': L('مسؤول التقنية', 'IT officer')})
     print(json.dumps({'tenant': t.id, 'form': form_ids[0], 'emp': emp_ids[0], 'dept': it, 'custody': cid, 'sign': tok,
                       'role': 1, 'user': 1}))
