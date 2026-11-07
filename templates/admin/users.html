@@ -47,7 +47,7 @@
       <label class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ u.full_name }}"></label>
       <div class="who">
         <span class="avatar">{{ u.full_name[:1] }}</span>
-        <div><b>{{ u.full_name }}</b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
+        <div><b><bdi>{{ u.full_name }}</bdi></b><br><small class="mono muted">{{ u.username }}{% if u.email %} · {{ u.email }}{% endif %}</small></div>
       </div>
       <div>{% for r in u.roles %}<span class="badge">{{ r.display_name }}</span> {% else %}<span class="badge warn">{{ L('بلا دور', 'No role') }}</span>{% endfor %} {{ status(u) }}</div>
       {% if u.departments %}<div class="muted" style="font-size:.85rem"><i class="fa-solid fa-building" aria-hidden="true"></i> {% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ L('، ', ', ') }}{% endif %}{% endfor %}</div>{% endif %}
@@ -55,7 +55,7 @@
         {% for g, items in groups|dictsort %}<div><b>{{ g }}:</b> {{ items|join(L('، ', ', ')) }}</div>
         {% else %}<span class="muted">{{ L('لا مهام مسندة — أسند دورًا من «تعديل».', 'No duties given — give a role from "Edit".') }}</span>{% endfor %}
       </div>
-      <small class="muted">{{ L('آخر دخول:', 'Last sign-in:') }} {{ (u.last_login|local('%Y-%m-%d %H:%M')) if u.last_login else L('لم يدخل بعد', 'Not signed in yet') }}</small>
+      <small class="muted">{{ L('آخر دخول:', 'Last sign-in:') }} {% if u.last_login %}<span dir="ltr">{{ u.last_login|local('%Y-%m-%d %H:%M') }}</span>{% else %}{{ L('لم يدخل بعد', 'Not signed in yet') }}{% endif %}</small>
       <div class="actions">
         <a class="btn small secondary" href="{{ url_for('admin.user_edit', user_id=u.id) }}">{{ L('تعديل', 'Edit') }}</a>
         {% if u.locked_until and u.locked_until > now %}
@@ -81,7 +81,7 @@
 {% for u in users %}
 <tr data-id="{{ u.id }}">
   <td class="sel"><input type="checkbox" data-row-select value="{{ u.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ u.full_name }}"></td>
-  <td>{{ u.full_name }}</td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
+  <td><bdi>{{ u.full_name }}</bdi></td><td class="mono">{{ u.username }}</td><td class="mono">{{ u.email or '—' }}</td>
   <td data-value="{{ u.roles|map(attribute='display_name')|join(L('، ', ', ')) }}">{% for r in u.roles %}<span class="badge">{{ r.display_name }}</span> {% endfor %}</td>
   <td>{% for d in u.departments %}{{ d.icon }} {{ d.name }}{% if not loop.last %}{{ L('، ', ', ') }}{% endif %}{% endfor %}</td>
   <td data-value="{% if not u.is_active %}{{ L('موقوف', 'Inactive') }}{% elif u.locked_until and u.locked_until > now %}{{ L('مقفل مؤقتًا', 'Temporarily locked') }}{% else %}{{ L('فعّال', 'Active') }}{% endif %}">{{ status(u) }}</td>

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% block title %}{{ L('موظف', 'Employee') }}{% endblock %}
 {% block content %}
-<div class="toolbar"><h1>{{ L('الموظف:', 'Employee:') }} {{ e.full_name }}</h1>
+<div class="toolbar"><h1>{{ L('الموظف:', 'Employee:') }} <bdi>{{ e.full_name }}</bdi></h1>
 {% if e.id %}<div class="actions-row">
   {% if (has_perm('custody.manage') or has_perm('custody.manage_all')) %}<a class="btn secondary" href="{{ url_for('custody.index', employee_id=e.id, next=url_for('employees.form', emp_id=e.id)) }}"><i class="fa-solid fa-hand-holding" aria-hidden="true"></i> {{ L('تسليم عهدة له', 'Hand over an item to them') }}</a>{% endif %}
   {% if has_perm('clearance.create') %}<a class="btn" href="{{ url_for('clearance.new', employee_id=e.id) }}"><i class="fa-solid fa-file-signature" aria-hidden="true"></i> {{ L('بدء براءة ذمة', 'Start a clearance') }}</a>{% endif %}

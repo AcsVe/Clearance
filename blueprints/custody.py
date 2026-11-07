@@ -35,7 +35,7 @@ FIELDS = [
     ('handed_by_email', ['بريد مسلم العهدة', 'بريد_مسلم_العهدة', 'handedByEmail']),
 ]
 FIELD_LABELS = ['العهدة', 'المستلم', 'بريد المستلم', 'القسم', 'مسلم العهدة', 'تاريخ التسليم', 'الكمية', 'الرقم التسلسلي']
-FIELD_LABELS_EN = ['item', 'recipient', 'email', 'department', 'handedBy', 'date', 'quantity', 'serial']   # also accepted on import
+FIELD_LABELS_EN = ['item', 'recipient', 'email', 'department', 'handed by', 'date', 'quantity', 'serial']   # also accepted on import
 
 
 def manageable_dept_ids(user):

@@ -73,7 +73,7 @@
 <tbody>
 {% for e in employees %}
 <tr data-id="{{ e.id }}"><td class="sel"><input type="checkbox" data-row-select value="{{ e.id }}" aria-label="{{ L('تحديد', 'Select') }} {{ e.full_name }}"></td>
-<td>{{ e.full_name }}</td><td class="mono">{{ e.employee_number or '—' }}</td><td class="mono">{{ e.email or '—' }}</td>
+<td><bdi>{{ e.full_name }}</bdi></td><td class="mono">{{ e.employee_number or '—' }}</td><td class="mono">{{ e.email or '—' }}</td>
 <td class="mono">{{ e.phone or '—' }}</td>
 <td data-value="{{ e.department.name if e.department else '—' }}">{{ (e.department.icon ~ ' ' ~ e.department.name) if e.department else '—' }}</td>
 <td>{{ e.job_title or '—' }}</td>

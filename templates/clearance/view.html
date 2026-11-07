@@ -18,17 +18,17 @@
   <div><small>{{ L('المسمى الوظيفي', 'Job title') }}</small><b>{{ f.job_title or '—' }}</b></div>
   <div><small>{{ L('تاريخ الاستقالة', 'Resignation date') }}</small><b class="mono">{{ f.resign_date or '—' }}</b></div>
   <div><small>{{ L('البريد', 'Email') }}</small><b class="mono">{{ f.employee_email or '—' }}</b></div>
-  <div><small>{{ L('أنشأه', 'Created by') }}</small><b>{{ f.created_by or '—' }}</b> <small class="mono">{{ (f.created_at|local('%Y-%m-%d')) }}</small></div>
+  <div><small>{{ L('أنشأه', 'Created by') }}</small><b><bdi>{{ f.created_by or '—' }}</bdi></b> <small class="mono">{{ (f.created_at|local('%Y-%m-%d')) }}</small></div>
 </div>
 {% if f.hr_note %}<div class="alert warning"><b>{{ L('ملاحظة شؤون الموظفين إلى المحاسبة:', 'HR note to Finance:') }}</b> {{ f.hr_note }}</div>{% endif %}
-{% if f.settled %}<div class="alert success"><b>{{ L('تسوية المحاسبة', 'Finance settlement') }}</b> ({{ f.settled_by }} — {{ (f.settled_at|local('%Y-%m-%d')) }}){% if f.finance_note %}: {{ f.finance_note }}{% endif %}</div>{% endif %}
+{% if f.settled %}<div class="alert success"><b>{{ L('تسوية المحاسبة', 'Finance settlement') }}</b> (<bdi>{{ f.settled_by }}</bdi> — <span dir="ltr">{{ f.settled_at|local('%Y-%m-%d') }}</span>){% if f.finance_note %}: <bdi>{{ f.finance_note }}</bdi>{% endif %}</div>{% endif %}
 
 <h2 style="margin:16px 0 10px">{{ L('ردود الأقسام', 'Department replies') }}</h2>
 <div class="card table-wrap"><table data-table id="t-resp">
 <thead><tr><th data-filter="text">{{ L('القسم', 'Department') }}</th><th data-filter="select">{{ L('الحالة', 'Status') }}</th><th data-filter="text">{{ L('الملاحظات', 'Notes') }}</th><th>{{ L('الموقّع', 'Signed by') }}</th><th data-sort="date">{{ L('التاريخ', 'Date') }}</th><th data-nosort>{{ L('التوقيع', 'Signature') }}</th></tr></thead>
 <tbody>{% for r in f.responses %}
 <tr><td>{{ r.department.icon }} {{ r.department.name }}</td><td data-value="{{ r.status_label }}">{{ resp_badge(r) }}</td>
-<td>{{ r.note or '—' }}</td><td>{{ r.responded_by or '—' }}</td>
+<td dir="auto">{{ r.note or '—' }}</td><td><bdi>{{ r.responded_by or '—' }}</bdi></td>
 <td class="mono">{{ (r.responded_at|local('%Y-%m-%d %H:%M')) if r.responded_at else '—' }}</td>
 <td>{% if may_sign[r.id] and f.status in ('in_progress', 'completed') %}{{ respond_form(r, request.path) }}{% endif %}</td></tr>
 {% endfor %}</tbody></table></div>

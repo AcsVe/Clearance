@@ -10,7 +10,7 @@
 <div class="card table-wrap"><table data-table id="t-audit">
 <thead><tr><th data-filter="text">{{ L('الوقت', 'Time') }}</th><th data-filter="select">{{ L('المنفّذ', 'Done by') }}</th><th data-filter="select">{{ L('العملية', 'Operation') }}</th><th data-filter="text">{{ L('السجل', 'Record') }}</th><th data-filter="text" data-nosort>{{ L('التفاصيل', 'Details') }}</th><th data-filter="text">{{ L('عنوان الشبكة', 'Network address') }}</th></tr></thead>
 <tbody>{% for r in rows %}
-<tr><td class="nowrap">{{ r.created_at|local }}</td><td>{{ audit_actor(r.actor) }}</td>
+<tr><td class="nowrap"><span dir="ltr">{{ r.created_at|local }}</span></td><td><bdi>{{ audit_actor(r.actor) }}</bdi></td>
 <td>{{ audit_action(r.action) }}</td><td>{{ audit_entity(r.entity_type, r.entity_id) }}</td>
 <td>{% if r.details %}<ul class="kv">{% for k, v in audit_details(r.details) %}<li><b>{{ k }}:</b> <bdi>{{ v }}</bdi></li>{% endfor %}</ul>{% endif %}</td>
 <td class="mono">{{ r.ip_address or '' }}</td></tr>
