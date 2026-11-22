@@ -16,6 +16,7 @@ import sys
 import tempfile
 import time
 import urllib.request
+from datetime import date, timedelta
 
 from playwright.sync_api import sync_playwright
 
@@ -37,7 +38,9 @@ def start(data):
     base = f'http://127.0.0.1:{PORTS[data]}'
     env = dict(os.environ, PYTHONUTF8='1', SECRET_KEY='ui-audit-secret', BASE_URL=base, PORT=str(PORTS[data]),
                CLR_DB_PATH=db_path, DATABASE_URL='sqlite:///' + db_path.replace('\\', '/'), DATA_DIR=folder,
-               DISABLE_SCHEDULER='1', DISABLE_REMINDERS='1', TRUST_PROXY='0', CONFIG_ENV=os.path.join(folder, 'none.env'))
+               DISABLE_SCHEDULER='1', DISABLE_REMINDERS='1', TRUST_PROXY='0', CONFIG_ENV=os.path.join(folder, 'none.env'),
+               # اشتراك قارب الانتهاء ليظهر شريط التنبيه في الفحص (التباين واللغة والاتجاه)
+               LICENSE_UNTIL=(date.today() + timedelta(days=10)).isoformat(), LICENSE_CONTACT='0790000000')
     for k in ('MS_TENANT_ID', 'MS_CLIENT_ID', 'MS_CLIENT_SECRET', 'MS_SENDER_EMAIL'):
         env.pop(k, None)
     out = subprocess.run([PY, os.path.join(ROOT, 'tests', 'ui_seed.py'), db_path, data], env=env, cwd=ROOT,

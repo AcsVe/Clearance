@@ -80,6 +80,7 @@ def create_app(overrides=None):
     _register_pwa_routes(app)
     _register_filters(app)
     _register_error_handlers(app)
+    _register_hosted_features(app)
 
     if app.config['AUTO_MIGRATE'] and not app.config.get('TESTING'):
         with app.app_context():
@@ -91,6 +92,24 @@ def create_app(overrides=None):
         start_scheduler(app)
 
     return app
+
+
+def _register_hosted_features(app):
+    """ميزات النسخة المستضافة، وكلها اختيارية ولا أثر لها دون إعدادها:
+    حماية مصدر الصفحات (utils/page_shield.py)، وأيقونة العميل (FAVICON_FILE)، وتنبيه صدور تحديث،
+    واشتراك النسخة المستضافة (LICENSE_FILE أو LICENSE_UNTIL)."""
+    from utils.page_shield import install as _shield
+    from utils.brand_icon import install as _favicon
+    from utils.app_version import install as _app_version
+    from utils.license import install as _license
+    _shield(app)
+    _favicon(app)
+    _app_version(app, os.path.dirname(os.path.abspath(__file__)))
+    # بعد الإيقاف يبقى مفتوحاً الدخول واستعادة كلمة المرور وملفات الواجهة، فيتمكن المدير من الدخول وتحميل بياناته.
+    _license(app, open_endpoints={'brand_favicon', 'auth.login', 'auth.logout', 'auth.forgot', 'auth.reset',
+                                  'super.login', 'super.logout', 'set_lang', 'healthz', 'manifest',
+                                  'service_worker', 'tenant_logo'},
+             lang_of=lambda req, sess: req.args.get('lang') or sess.get('lang') or req.cookies.get('lang'))
 
 
 def _register_request_hooks(app):
