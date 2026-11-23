@@ -68,9 +68,19 @@
   </header>
   {% endif %}
   <main>
+    {% if lic.state in ('warn', 'grace') and current_user and has_perm('users.manage') %}
+    <div class="alert danger license-alert" role="status">
+      <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
+      {{ L('ينتهي اشتراك هذا النظام في', 'The subscription for this system ends on') if lic.state == 'warn' else L('انتهى اشتراك هذا النظام، وسيتوقف في', 'The subscription for this system has ended; the system will be paused on') }}
+      <span dir="ltr">{{ lic.until if lic.state == 'warn' else lic.lock_from }}</span>.
+      {{ L('تواصل مع مزوّد الخدمة لتجديده.', 'Contact the service provider to renew it.') }}
+      {% if lic.contact %}<bdi>{{ lic.contact }}</bdi>{% endif %}
+    </div>
+    {% endif %}
     {% include '_flash.html' %}
     {% block content %}{% endblock %}
   </main>
 </div>
+{% if current_user %}<script src="{{ url_for('static', filename='js/update-notice.js') }}" data-version="{{ app_version }}" data-url="/api/app-version" defer></script>{% endif %}
 </body>
 </html>
